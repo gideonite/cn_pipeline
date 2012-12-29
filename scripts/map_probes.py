@@ -1,5 +1,20 @@
 #!/usr/bin/env python
 
+# Affymetrix SNP6 Level_2 data looks like this,
+#
+# Hybridization REF AMAZE_p_TCGASNP_b86_87_88_N_GenomeWideSNP_6_A10_735526
+# Composite Element REF   Signal
+# AFFX-5Q-123 1267.615
+# AFFX-5Q-456 314.549
+# AFFX-5Q-789 3220.386
+# AFFX-5Q-ABC 986.392
+# ...
+
+# a probes file looks like this
+# SNP_A-1738457    1   328296
+# SNP_A-1658232    1   1435232
+# ...
+
 import sys
 import argparse
 
@@ -42,32 +57,36 @@ def markers_hash(markerfile):
 if __name__ == "__main__":
 
     # make an arg parser
-    parser = argparse.ArgumentParser(description="Utils for dealing with sequencing \
-            probes")
-    print parser
+    parser = argparse.ArgumentParser(description="Utils for dealing with \
+            sequencing probes.  Takes the probes in question via stdin")
 
-    if len(sys.argv) != 1:
-        print "usage: map_probes <markers_file> stdin"
+    # some options
+    parser.add_argument('unmapped', help="diagnostic of unmapped probes")
+    parser.add_argument('map', help="map away")
+    parser.add_argument('--to', help="file to map probes into", type=argparse.FileType('r'))
+    parser.add_argument('markers_file', help='file of probes', type=argparse.FileType('r'))
 
-    # make the hash of markers to chr, pos
-    markers_fn = sys.argv[1]
-    markers_fp = open(markers_fn)
-    hash = markers_hash(markers_fp)
-    markers_fp.close()
+    args = parser.parse_args()
 
-    lines = sys.stdin.readlines()
-    unmapped = 0
+    ## make the hash of markers to chr, pos
+    #markers_fn = sys.argv[1]
+    #markers_fp = open(markers_fn)
+    #hash = markers_hash(markers_fp)
+    #markers_fp.close()
 
-    for line in lines:
-        line = line.strip()
-        line = line.split("\t")
+    #lines = sys.stdin.readlines()
+    #unmapped = 0
 
-        probe, signal = line[0], line[1]
-        try:
-            #sys.stdout.write("%s\t%d\t%d\t%s\n" % (probe, hash[probe][0], hash[probe][1], signal))     # print map string
-            hash[probe][0]                      # map the probe
-        except KeyError:
-            unmapped += 1
+    #for line in lines:
+    #    line = line.strip()
+    #    line = line.split("\t")
 
-    sys.stderr.write("%d unmapped probes\n" % unmapped)
-    sys.stderr.write("%d \n" % len(lines))
+    #    probe, signal = line[0], line[1]
+    #    try:
+    #        #sys.stdout.write("%s\t%d\t%d\t%s\n" % (probe, hash[probe][0], hash[probe][1], signal))     # print map string
+    #        hash[probe][0]                      # map the probe
+    #    except KeyError:
+    #        unmapped += 1
+
+    #sys.stderr.write("%d unmapped probes\n" % unmapped)
+    #sys.stderr.write("%d \n" % len(lines))
