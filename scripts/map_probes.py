@@ -16,6 +16,7 @@
 # ...
 
 import sys
+import re
 import argparse
 
 def markers_hash(markerfile):
@@ -54,39 +55,85 @@ def markers_hash(markerfile):
     sys.stderr.write("...DONE!  (skipped %d X/Y probes)\n" % skipped_XY)
     return hash
 
-if __name__ == "__main__":
+def map_snp_marker_data(hash, snp_lines):
+    # takes a hash map like this {'CN_473964': [1, 61808]} and lines from a snp
+    # markers file like this
+        # header lines
+        # AFFX-5Q-123 1267.615
+    # and writes to stdout lines like this for input into CBS
+    #
+    # header lines are assumed to contain the string "REF" and are ignored
+    # based on this criteria
 
-    # make an arg parser
-    parser = argparse.ArgumentParser(description="Utils for dealing with \
-            sequencing probes.  Takes the probes in question via stdin")
+    out = sys.stdout
 
-    # some options
-    parser.add_argument('unmapped', help="diagnostic of unmapped probes")
-    parser.add_argument('map', help="map away")
-    parser.add_argument('--to', help="file to map probes into", type=argparse.FileType('r'))
-    parser.add_argument('markers_file', help='file of probes', type=argparse.FileType('r'))
+    REF = re.compile("REF")
 
-    args = parser.parse_args()
+    for line in snp_lines:
+        if REF.search(line):
+            continue
+        line = line.strip()
+        line = line.split(" ")                          # data has no whitespace
+        line = filter(lambda x: x != '', line)
+        #print line
 
-    ## make the hash of markers to chr, pos
-    #markers_fn = sys.argv[1]
-    #markers_fp = open(markers_fn)
-    #hash = markers_hash(markers_fp)
-    #markers_fp.close()
+        probe, signal = line[0], line[1]
+        try:
+            # map the probe
+            locus = hash[probe]
+            chr = locus[0]
+            pos = locus[1]
 
-    #lines = sys.stdin.readlines()
-    #unmapped = 0
+            out.write("%s\t%d\t%d\t%s\n" \
+                    % (probe, hash[probe][0], hash[probe][1], signal))
+        except KeyError:
+            unmapped += 1
 
-    #for line in lines:
-    #    line = line.strip()
-    #    line = line.split("\t")
+### arg parser ###
 
-    #    probe, signal = line[0], line[1]
-    #    try:
-    #        #sys.stdout.write("%s\t%d\t%d\t%s\n" % (probe, hash[probe][0], hash[probe][1], signal))     # print map string
-    #        hash[probe][0]                      # map the probe
-    #    except KeyError:
-    #        unmapped += 1
+def map_wrap(args):
+    # wrapper to take commandline arguments and run map_snp_marker_data on them
+    hash = markers_hash(args.marker_positions)
 
-    #sys.stderr.write("%d unmapped probes\n" % unmapped)
-    #sys.stderr.write("%d \n" % len(lines))
+    snp_lines = sys.stdin.readlines()
+    #print snp_lines
+
+    map_snp_marker_data(hash, snp_lines)
+
+parser = argparse.ArgumentParser(description="Utils for dealing with \
+        sequencing probes.  Takes the probes in question via stdin")
+subparsers = parser.add_subparsers()
+
+#diagnostic = subparsers.add_parser('diagnostic', help="diagnostic of unmapped probes")
+#diagnostic.set_defaults(func=foo)
+
+map = subparsers.add_parser('map', help="map away to standard out")
+map.set_defaults(func=lambda args:
+        map_snp_marker_data(markers_hash(args.marker_positions), \
+            sys.stdin.readlines()))
+
+parser.add_argument('marker_positions', help='file of marker positions, \
+        e.g. lines like this SNP_A-1738457    1   328296 ', type=argparse.FileType('r'))
+
+args = parser.parse_args()
+args.func(args)
+
+#if __name__ == "__main__":
+#    markers_fp = args.marker_positions
+#    hash = markers_hash(markers_fp)
+#    #print hash
+#    markers_fp.close()
+#
+#    snp_lines = sys.stdin.readlines()
+#    #print snp_lines
+#
+#    if args.unmapped:
+#        print 'diagnostic!'
+#        print args.map
+#
+#    if args.map:
+#        print 'map away!'
+#        #map_snp_marker_data(hash, snp_lines)
+#
+#    sys.stderr.write("%d unmapped probes\n" % unmapped)
+#    sys.stderr.write("%d \n" % len(lines))
