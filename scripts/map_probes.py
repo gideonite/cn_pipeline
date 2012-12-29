@@ -121,23 +121,3 @@ parser.add_argument('marker_positions', help='file of marker positions, \
 
 args = parser.parse_args()
 args.func(args)
-
-#if __name__ == "__main__":
-#    markers_fp = args.marker_positions
-#    hash = markers_hash(markers_fp)
-#    #print hash
-#    markers_fp.close()
-#
-#    snp_lines = sys.stdin.readlines()
-#    #print snp_lines
-#
-#    if args.unmapped:
-#        print 'diagnostic!'
-#        print args.map
-#
-#    if args.map:
-#        print 'map away!'
-#        #map_snp_marker_data(hash, snp_lines)
-#
-#    sys.stderr.write("%d unmapped probes\n" % unmapped)
-#    sys.stderr.write("%d \n" % len(lines))
