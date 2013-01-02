@@ -60,8 +60,6 @@ def map_snp_marker_data(hash, snp_lines, diagnostic):
     # markers file like this
         # header lines
         # AFFX-5Q-123 1267.615
-    # and writes to stdout lines like this for input into CBS
-    #
     # header lines are assumed to contain the string "REF" and are ignored
     # based on this criteria
     #
@@ -101,6 +99,28 @@ def map_snp_marker_data(hash, snp_lines, diagnostic):
     if first_unmapped != '':
         sys.stderr.write("1st unmapped probe: %s (line %d) \n" % (first_unmapped, first_unmapped_line))
 
+def map_probes(hash, probes):
+    out = sys.stderr
+    first_unmapped_probe, first_unmapped_probe_line = '', -1
+    unmapped = 0
+
+    i = 0
+    for probe in probes:
+        i += 1
+        try:
+            hash[probe]
+        except KeyError:
+            if first_unmapped_probe == '':
+                first_unmapped_probe = probe
+                first_unmapped_line = i
+            unmapped += 1
+    out.write("\n%d unmapped probe(s)\n" % unmapped)
+
+    if first_unmapped_probe != '':
+        out.write("1st unmapped probe: %s (line %d) \n" \
+                % (first_unmapped_probe, first_unmapped_line))
+
+
 ### arg parser ###
 parser = argparse.ArgumentParser(description="Utils for dealing with \
         sequencing probes.  Takes the probes in question via stdin")
@@ -115,6 +135,11 @@ map = subparsers.add_parser('map', help="map away to standard out")
 map.set_defaults(func=lambda args:
         map_snp_marker_data(markers_hash(args.marker_positions), \
             sys.stdin.readlines(), diagnostic=False))
+
+map_probes_opt = subparsers.add_parser('map_probes', help="map a list of (newline \
+        deliminited) probes taken from stdin")
+map_probes_opt.set_defaults(func=lambda args:
+        map_probes(markers_hash(args.marker_positions), sys.stdin.readlines()))
 
 parser.add_argument('marker_positions', help='file of marker positions, \
         e.g. lines like this SNP_A-1738457    1   328296 ', type=argparse.FileType('r'))
