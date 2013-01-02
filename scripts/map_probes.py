@@ -50,7 +50,9 @@ def markers_hash(markerfile):
         chr = int(chr)
         pos = int(pos)
 
-        hash[probe_name] = [chr, pos]
+        # 2 way map
+        hash[probe_name] = (chr, pos)
+        hash[(chr,pos)] = probe_name
 
     sys.stderr.write("DONE!  (skipped %d X/Y probes)\n\n" % skipped_XY)
     return hash
@@ -100,6 +102,8 @@ def map_snp_marker_data(hash, snp_lines, diagnostic):
         sys.stderr.write("1st unmapped probe: %s (line %d) \n" % (first_unmapped, first_unmapped_line))
 
 def map_probes(hash, probes):
+    # takes a list of probes and looks for unmapped probes
+
     out = sys.stderr
     first_unmapped_probe, first_unmapped_probe_line = '', -1
     unmapped = 0
@@ -120,6 +124,73 @@ def map_probes(hash, probes):
         out.write("1st unmapped probe: %s (line %d) \n" \
                 % (first_unmapped_probe, first_unmapped_line))
 
+def map_pos(hash, positions):
+    # takes a list of positions and looks for unmapped positions
+    # positions are a list of strings like this
+        # chr   position
+        # 1     1234
+    out = sys.stderr
+
+    unmapped = 0
+    for position in positions:
+        pos = tuple(position.split())
+        try:
+            hash[pos]
+        except KeyError:
+            unmapped += 1
+    out.write("\n%d unmapped position(s)\n" % unmapped)
+
+def nearest_probe(markerfile, positions):
+    sys.stderr.write("hashing probes...")
+
+    lines = markerfile.readlines()
+
+    # initialize hash map of { chr : position }
+    hash = {}
+    for i in range(1,24):
+        if i == 23:
+            hash["X/Y"] = []
+        else:
+            key = str(i)
+            hash[key] = []
+
+    for line in lines:
+        if ("#" in line):
+            # skip the first line, is this a dumb way of doing it?
+            continue
+
+        line = line.split("\t")
+
+        try:
+            probe_name = line[0]
+            chr        = line[1].strip()
+            pos        = line[2].strip()
+        except IndexError:
+            print line
+
+        pos = int(pos)
+
+        # get the proper mapping
+        if chr == 'X' or chr == 'Y':
+            positions = hash["X/Y"]
+        else:
+            positions = hash[chr]
+
+        # no need to duplicate probes
+        if positions != [] and pos == positions[-1]:
+            continue
+
+        # order is not preserved
+        if positions != [] and positions[-1] >= pos:
+            sys.stderr.write("Warning: probes are not listed in order of genomic position: ")
+            sys.stderr.write("%s %d %d\n" % (chr, positions[-1], pos))
+            #sys.exit(1)
+
+        # append the new pos
+        positions.append(pos)
+
+    sys.stderr.write("\nDONE hashing!\n")
+    #print hash
 
 ### arg parser ###
 parser = argparse.ArgumentParser(description="Utils for dealing with \
@@ -140,6 +211,16 @@ map_probes_opt = subparsers.add_parser('map_probes', help="map a list of (newlin
         deliminited) probes taken from stdin")
 map_probes_opt.set_defaults(func=lambda args:
         map_probes(markers_hash(args.marker_positions), sys.stdin.readlines()))
+
+map_positions = subparsers.add_parser('map_positions', help="map a list of positions \
+        deliminited) probes taken from stdin")
+map_positions.set_defaults(func=lambda args:
+        map_pos(markers_hash(args.marker_positions), sys.stdin.readlines()))
+
+nearest_probe_opt = subparsers.add_parser('nearest_probe', help="map a list of positions \
+        deliminited) probes taken from stdin")
+nearest_probe_opt.set_defaults(func=lambda args:
+        nearest_probe(args.marker_positions, sys.stdin.readlines()))
 
 parser.add_argument('marker_positions', help='file of marker positions, \
         e.g. lines like this SNP_A-1738457    1   328296 ', type=argparse.FileType('r'))
