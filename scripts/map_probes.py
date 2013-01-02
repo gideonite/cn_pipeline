@@ -190,7 +190,10 @@ def nearest_probe(markerfile, positions):
         positions.append(pos)
 
     sys.stderr.write("\nDONE hashing!\n")
-    #print hash
+
+    for pos in positions:
+        print pos
+
 
 ### arg parser ###
 parser = argparse.ArgumentParser(description="Utils for dealing with \
