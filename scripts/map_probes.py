@@ -20,59 +20,15 @@ import re
 import argparse
 
 REF = re.compile("REF")
+barcode = re.compile("barcode")
 
+# MarkerSignal {{{
 class MarkerSignal:
     def __init__(self, name, signal):
         self.name = name
         self.signal = signal
     def __repr__(self):
         return "MarkerSignal(%s, %s)" %(self.name, self.signal)
-
-#{{{
-#def map_snp_marker_data(hash, snp_lines, diagnostic):
-#    # takes a hash map like this {'CN_473964': [1, 61808]} and lines from a snp
-#    # markers file like this
-#        # header lines
-#        # AFFX-5Q-123 1267.615
-#    # header lines are assumed to contain the string "REF" and are ignored
-#    # based on this criteria
-#    #
-#    # diagnostic: boolean. Print things out in format for CBS or just do a diagnostic?
-#
-#    out = sys.stdout
-#
-#    REF = re.compile("REF")
-#
-#    unmapped = 0
-#    first_unmapped = ''
-#    line_no = 0
-#    for line in snp_lines:
-#        line_no+=1
-#        if REF.search(line):
-#            continue
-#        line = line.strip()
-#        line = line.split()                          # assume: data has no whitespace
-#        line = filter(lambda x: x != '', line)
-#
-#        probe, signal = line[0], line[1]
-#        try:
-#            # map the probe
-#            locus = hash[probe]
-#            chr = locus[0]
-#            pos = locus[1]
-#
-#            if not diagnostic:
-#                out.write("%s\t%d\t%d\t%s\n" \
-#                        % (probe, chr, pos, signal))
-#        except KeyError:
-#            unmapped += 1
-#            if first_unmapped == '':
-#                first_unmapped = probe
-#                first_unmapped_line = line_no
-#    sys.stderr.write("\n%d unmapped probe(s)\n" % unmapped)
-#    if first_unmapped != '':
-#        sys.stderr.write("1st unmapped probe: %s (line %d) \n" % (first_unmapped, first_unmapped_line))
-#}}}
 
 def read_marker_signal(line):
     #helper function to read in a line
@@ -91,35 +47,50 @@ def read_marker_signals(_in):
     # header lines have the string "REF" in them
 
     out = sys.stdout
-
-    unmapped = 0
-    first_unmapped = ''
-    line_no = 0
     list = []
 
+    sys.stderr.write("reading in marker-signal data...")
     for line in _in.readlines():
-        line_no+=1
         if REF.search(line):
             continue
-        markerSignal = read_marker_signal(line)
-        list.append(markerSignal)
+        marker_signal = read_marker_signal(line)
+        list.append(marker_signal)
 
+    sys.stderr.write("DONE!\n")
     return list
+#}}}
 
+# {{{ CbsSegment
 class CbsSegment:
-    def __init__(self, sample, chr, start, stop, num_mark, seg_mean):
+    def __init__(self, sample, chr, start, stop, seg_mean):
         self.sample = sample
         self.chr = chr
         self.start = start
         self.stop = stop
-        self.num_mark = num_mark
         self.seg_mean = seg_mean
+    def __repr__(self):
+        return "CbsSegment(%s, %s, %s, %s, %s)" \
+                %(self.sample, self.chr, self.start, self.stop, self.seg_mean)
+
+def read_cbs_segments(_in):
+    list = []
+
+    for line in _in.readlines():
+        if barcode.search(line):
+            continue
+        values = line.split()
+        cbs_seg = CbsSegment(values[0], values[1], values[2], values[3], values[4])
+        list.append(cbs_seg)
+    return list
+#}}}
 
 class MarkerPosUtil:
     def __init__(self, markerfile):
         self.marker_f = markerfile
         self.hash = self.make_hash(markerfile)
+        self.chr_pos_hash = None      # initialize
 
+    # {{{ make_hash
     def make_hash(self, markerfile):
         # someday this may want to be implemented differently, i.e. with a
         # "Marker class"
@@ -150,8 +121,8 @@ class MarkerPosUtil:
 
             # not efficient memory-wise but should help safeguard against some
             # errors
-            chr = int(chr)
-            pos = int(pos)
+            # chr = int(chr)
+            # pos = int(pos)
 
             # 2 way map
             hash[probe_name] = (chr, pos)
@@ -159,6 +130,66 @@ class MarkerPosUtil:
 
         sys.stderr.write("DONE!  (skipped %d X/Y probes)\n\n" % skipped_XY)
         return hash
+    #}}}
+
+    def make_chr_pos_hash(self):
+        # initialize hash map of { chr : position }
+        hash = {}
+        for i in range(1,24):
+            if i == 23:
+                hash["X/Y"] = []
+            else:
+                key = str(i)
+                hash[key] = []
+
+        for key in self.hash.keys():
+            if type(key) == tuple:
+                hash[key[0]].append(key[1])
+
+        self.chr_pos_hash = hash
+
+    def map_marker_signals(self, marker_signals):
+        sys.stderr.write("mapping marker signals...")
+        unmapped = 0
+        first_unmapped = ''
+        line_no = 0
+
+        for ms in marker_signals:
+            line_no+=1
+            try:
+                self.hash[ms.name]
+            except KeyError:
+                unmapped += 1
+                if first_unmapped == '':
+                    first_unmapped = ms
+                    first_unmapped_line = line_no
+
+        sys.stderr.write("DONE!\n")
+
+        sys.stderr.write("\n%d unmapped probe(s)\n" % unmapped)
+        if first_unmapped != '':
+            sys.stderr.write("1st unmapped probe: %s (line %d) \n" % (first_unmapped, first_unmapped_line))
+
+    def map_cbs_segments(self, cbs_segments):
+        sys.stderr.write("mapping cbs segments...")
+        unmapped = 0
+        first_unmapped = ''
+        line_no = 0
+
+        for cbs_seg in cbs_segments:
+            try:
+                self.hash[ (cbs_seg.chr, cbs_seg.start) ]
+            except KeyError:
+                unmapped += 1
+                if first_unmapped == '':
+                    first_unmapped = cbs_seg
+                    first_unmapped_line = line_no
+        sys.stderr.write("DONE!\n")
+
+        sys.stderr.write("\n%d unmapped segment(s)\n" % unmapped)
+        if first_unmapped != '':
+            sys.stderr.write("1st unmapped segment: %s (line %d) \n" % (first_unmapped, first_unmapped_line))
+
 
 def map_probes(hash, probes):
     # takes a list of probes and looks for unmapped probes
@@ -269,8 +300,11 @@ if __name__ == "__main__":
     ms = MarkerPosUtil(marker_f)
     marker_f.close()
 
-    print read_marker_signals(sys.stdin)
+    ms.make_chr_pos_hash()
+    ms.
 
+    #ms.map_marker_signals(read_marker_signals(sys.stdin))
+    ms.map_cbs_segments(read_cbs_segments(sys.stdin))
 
 ### {{{ arg parser ###
 #parser = argparse.ArgumentParser(description="Utils for dealing with \
