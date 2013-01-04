@@ -172,28 +172,37 @@ def nearest_probe(markerfile, positions):
 
         # get the proper mapping
         if chr == 'X' or chr == 'Y':
-            positions = hash["X/Y"]
+            loci = hash["X/Y"]
         else:
-            positions = hash[chr]
+            loci = hash[chr]
 
         # no need to duplicate probes
-        if positions != [] and pos == positions[-1]:
+        if loci != [] and pos == loci[-1]:
             continue
 
         # order is not preserved
-        if positions != [] and positions[-1] >= pos:
+        if loci != [] and loci[-1] >= pos:
             sys.stderr.write("Warning: probes are not listed in order of genomic position: ")
-            sys.stderr.write("%s %d %d\n" % (chr, positions[-1], pos))
+            sys.stderr.write("%s %d %d\n" % (chr, loci[-1], pos))
             #sys.exit(1)
 
         # append the new pos
-        positions.append(pos)
+        loci.append(pos)
 
     sys.stderr.write("\nDONE hashing!\n")
 
+    # "premature optimization is the root of all evil"
     for pos in positions:
-        print pos
+        pos = pos.split()
+        chr, locus = pos[0], pos[1]
 
+        # find the closest locus
+        chr_loci = hash[chr]
+
+        for l in chr_loci:
+            if int(locus) < l:
+                print chr, locus, l
+                break
 
 ### arg parser ###
 parser = argparse.ArgumentParser(description="Utils for dealing with \
