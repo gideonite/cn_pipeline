@@ -23,7 +23,6 @@ from bisect import bisect_left, bisect_right
 REF = re.compile("REF")
 barcode = re.compile("barcode")
 
-# MarkerSignal {{{
 class MarkerSignal:
     def __init__(self, name, signal):
         self.name = name
@@ -47,21 +46,19 @@ def read_marker_signals(_in):
         # AFFX-5Q-123 1267.615
     # header lines have the string "REF" in them
 
-    out = sys.stdout
     list = []
+    out = sys.stderr
 
-    sys.stderr.write("reading in marker-signal data...")
+    out.write("reading in marker-signal data...")
     for line in _in.readlines():
         if REF.search(line):
             continue
         marker_signal = read_marker_signal(line)
         list.append(marker_signal)
 
-    sys.stderr.write("DONE!\n")
+    out.write("DONE!\n")
     return list
-#}}}
 
-# {{{ CbsSegment
 class CbsSegment:
     def __init__(self, sample, chr, start, stop, seg_mean):
         self.sample = sample
@@ -76,14 +73,23 @@ class CbsSegment:
 def read_cbs_segments(_in):
     list = []
 
+    out = sys.stderr
+
+    out.write("\nreading cbs segments...")
+
     for line in _in.readlines():
         if barcode.search(line):
             continue
         values = line.split()
-        cbs_seg = CbsSegment(values[0], values[1], values[2], values[3], values[4])
-        list.append(cbs_seg)
+        try:
+            cbs_seg = CbsSegment(values[0], values[1], values[2], values[3], values[4])
+            list.append(cbs_seg)
+        except IndexError:
+            raise IndexError(values, "expected sample, chr, start, stop, seg_mean")
+
+    out.write("DONE!\n")
+
     return list
-#}}}
 
 class MarkerPosUtil:
     def __init__(self, markerfile):
@@ -121,16 +127,11 @@ class MarkerPosUtil:
                 skipped_XY += 1
                 continue
 
-            # not efficient memory-wise but should help safeguard against some
-            # errors
-            # chr = int(chr)
-            # pos = int(pos)
-
             # 2 way map
             hash[probe_name] = (chr, pos)
             hash[(chr,pos)] = probe_name
 
-        sys.stderr.write("DONE!  (skipped %d X/Y probes)\n\n" % skipped_XY)
+        sys.stderr.write("DONE!  (skipped %d X/Y probes)\n" % skipped_XY)
         return hash
 
     def make_locus_hash(self):
@@ -224,13 +225,13 @@ class MarkerPosUtil:
             i = bisect_right(a, x)
             if i:
                 return a[i-1]
-            raise ValueError
+            raise ValueError("chromsome probably not found")
         def find_ge(a, x):
             'Find leftmost item greater than or equal to x'
             i = bisect_left(a, x)
             if i != len(a):
                 return a[i]
-            raise ValueError
+            raise ValueError("chromsome probably not found")
 
         le = find_le(loci, pos)
         ge = find_ge(loci, pos)
@@ -244,53 +245,60 @@ class MarkerPosUtil:
 
         return min(abs(l - pos), abs(r - pos))
 
-if __name__ == "__main__":
-    marker_f = open(sys.argv[1])
+def unmarked_opt(args):
+    input_type = args.input_file_type
+    marker_f = args.marker_file
+    input_f = args.input_file
+
     util = MarkerPosUtil(marker_f)
+
+    if input_type == 'cbs':
+        cbs_segs = read_cbs_segments(input_f)
+        util.map_loci([ (seg.chr, seg.start) for seg in cbs_segs])
+    elif input_type == 'marker-signal':
+        marker_signals = read_marker_signals(input_f)
+        util.map_markers([ ms.name for ms in marker_signals ])
+
+    input_f.close()
     marker_f.close()
 
-    #marker_signals = read_marker_signals(sys.stdin)
-    #util.map_markers([ms.name for ms in marker_signals])
+def distance_to_nearest_probe_opt(args):
+    marker_f = args.marker_file
+    input_f = args.input_file
+    out = sys.stderr
 
-    #cbs_segs = read_cbs_segments(sys.stdin)
-    #util.map_loci([(seg.chr, seg.start) for seg in cbs_segs])
+    util = MarkerPosUtil(marker_f)
 
-    #ms.map_marker_signals(read_marker_signals(sys.stdin))
-    #ms.map_cbs_segments(read_cbs_segments(sys.stdin))
+    cbs_segs = read_cbs_segments(input_f)
 
-### {{{ arg parser ###
-#parser = argparse.ArgumentParser(description="Utils for dealing with \
-#        sequencing probes.  Takes the probes in question via stdin")
-#subparsers = parser.add_subparsers()
-#
-#diagnostic = subparsers.add_parser('diagnostic', help="diagnostic of unmapped probes")
-#diagnostic.set_defaults(func=lambda args:
-#        map_snp_marker_data(markers_hash(args.marker_positions), \
-#            sys.stdin.readlines(), diagnostic=True))
-#
-#map = subparsers.add_parser('map', help="map away to standard out")
-#map.set_defaults(func=lambda args:
-#        map_snp_marker_data(markers_hash(args.marker_positions), \
-#            sys.stdin.readlines(), diagnostic=False))
-#
-#map_probes_opt = subparsers.add_parser('map_probes', help="map a list of (newline \
-#        deliminited) probes taken from stdin")
-#map_probes_opt.set_defaults(func=lambda args:
-#        map_probes(markers_hash(args.marker_positions), sys.stdin.readlines()))
-#
-#map_positions = subparsers.add_parser('map_positions', help="map a list of positions \
-#        deliminited) probes taken from stdin")
-#map_positions.set_defaults(func=lambda args:
-#        map_pos(markers_hash(args.marker_positions), sys.stdin.readlines()))
-#
-#nearest_probe_opt = subparsers.add_parser('nearest_probe', help="map a list of positions \
-#        deliminited) probes taken from stdin")
-#nearest_probe_opt.set_defaults(func=lambda args:
-#        nearest_probes(chr_pos_hash(args.marker_positions), sys.stdin.readlines()))
-#
-#parser.add_argument('marker_positions', help='file of marker positions, \
-#        e.g. lines like this SNP_A-1738457    1   328296 ', type=argparse.FileType('r'))
-#
-#args = parser.parse_args()
-#args.func(args)
-#}}}
+    distances = []
+
+    out.write("\nfind nearest probes...")
+    for seg in cbs_segs:
+        #d = util.distance_to_nearest_probe( (seg.chr, seg.start) )
+
+        #if d not in distances:
+        #    distances.append(d)
+        #    print d
+
+    out.write("DONE!\n")
+
+# parser stuff
+parser = argparse.ArgumentParser(description="Utils for dealing with sequencing \
+        probes.")
+parser.add_argument('--marker_file', '-m', type=argparse.FileType('r'))
+parser.add_argument('--input_file', '-i', type=argparse.FileType('r'))
+subparsers = parser.add_subparsers()
+
+unmarked = subparsers.add_parser('unmarked', help="print some stats about the \
+        number of unmarked probes.")
+unmarked.add_argument('--input_file_type', '-t', type=str, help="The type of the \
+        input file: {cbs, marker-signal, marker}")
+unmarked.set_defaults(func=unmarked_opt)
+
+distance = subparsers.add_parser('distance', help="find the distance to the \
+        nearest probe of loci (e.g. chr and positions).  Only takes CBS output as input")
+distance.set_defaults(func=distance_to_nearest_probe_opt)
+
+args = parser.parse_args()
+args.func(args)
