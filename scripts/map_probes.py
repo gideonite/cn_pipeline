@@ -23,14 +23,15 @@ from bisect import bisect_left, bisect_right
 REF = re.compile("REF")
 barcode = re.compile("barcode")
 
-class MarkerSignal:
+class MarkerSignal: #{{{
     def __init__(self, name, signal):
         self.name = name
         self.signal = signal
     def __repr__(self):
         return "MarkerSignal(%s, %s)" %(self.name, self.signal)
+    #}}}
 
-def read_marker_signal(line):
+def read_marker_signal(line): #{{{
     #helper function to read in a line
     line = line.strip()
     line = line.split()                          # assume: data has no whitespace
@@ -39,8 +40,9 @@ def read_marker_signal(line):
     name, signal = line[0], line[1]
     ms = MarkerSignal(name, signal)
     return ms
+#}}}
 
-def read_marker_signals(_in):
+def read_marker_signals(_in): #{{{
     # reads in a file with lines like this
         # header lines
         # AFFX-5Q-123 1267.615
@@ -58,8 +60,9 @@ def read_marker_signals(_in):
 
     out.write("DONE!\n")
     return list
+#}}}
 
-class CbsSegment:
+class CbsSegment: #{{{
     def __init__(self, sample, chr, start, stop, seg_mean):
         self.sample = sample
         self.chr = chr
@@ -69,8 +72,9 @@ class CbsSegment:
     def __repr__(self):
         return "CbsSegment(%s, %s, %s, %s, %s)" \
                 %(self.sample, self.chr, self.start, self.stop, self.seg_mean)
+# }}}
 
-def read_cbs_segments(_in):
+def read_cbs_segments(_in): #{{{
     list = []
 
     out = sys.stderr
@@ -90,8 +94,9 @@ def read_cbs_segments(_in):
     out.write("DONE!\n")
 
     return list
+#}}}
 
-class MarkerPosUtil:
+class MarkerPosUtil: #{{{
     def __init__(self, markerfile):
         self.marker_f = markerfile
         self.chrPos_name_hash = self.make_chrPos_name_hash(markerfile)
@@ -244,6 +249,7 @@ class MarkerPosUtil:
         (l, r) = (int(l), int(r))
 
         return min(abs(l - pos), abs(r - pos))
+#}}}
 
 def unmarked_opt(args):
     input_type = args.input_file_type
