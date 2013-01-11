@@ -72,6 +72,10 @@ class CbsSegment: #{{{
     def __repr__(self):
         return "CbsSegment(%s, %s, %s, %s, %s)" \
                 %(self.sample, self.chr, self.start, self.stop, self.seg_mean)
+    def get_start_pos(self):
+        return (self.chr, self.start)
+    def get_end_pos(self):
+        return (self.chr, self.end)
 # }}}
 
 def read_cbs_segments(_in): #{{{
@@ -96,13 +100,14 @@ def read_cbs_segments(_in): #{{{
     return list
 #}}}
 
-class MarkerPosUtil: #{{{
-    def __init__(self, markerfile):
+class MarkerPosUtil:
+    def __init__(self, markerfile): #{{{
         self.marker_f = markerfile
         self.chrPos_name_hash = self.make_chrPos_name_hash(markerfile)
         self.locus_hash = None      # initialize
+        #}}}
 
-    def make_chrPos_name_hash(self, markerfile):
+    def make_chrPos_name_hash(self, markerfile): #{{{
         # returns a two-way hash (chr, pos) <-> probe_name
         #
         # (someday this may want to be implemented differently, i.e. with a
@@ -138,8 +143,9 @@ class MarkerPosUtil: #{{{
 
         sys.stderr.write("DONE!  (skipped %d X/Y probes)\n" % skipped_XY)
         return hash
+    #}}}
 
-    def make_locus_hash(self):
+    def make_locus_hash(self): #{{{
         # returns a hash of { chr : position } where position is the locus on
         # the chr
 
@@ -163,42 +169,19 @@ class MarkerPosUtil: #{{{
         if self.locus_hash == None:
             self.locus_hash = self.make_locus_hash()
         return self.locus_hash
+    #}}}
 
-    def unmapped_markers(self, markers):
+    def unmapped(self, markers): #{{{
         """
-        filters through a list of marker ids,
+        filters through a list of marker_ids OR (chr, pos)
         returning a list of the ones that are not mapped
-        (i.e. do not have a corresponding chromosome and position in the hash
-        table)
+        (i.e. are not in the dict)
         """
 
         return filter(lambda m: not self.chrPos_name_hash.has_key(m), markers)
+    #}}}
 
-    def map_loci(self, loci):
-        # map a list of loci using the hash table
-        # and report some stats
-        # loci, e.g. tuple(1, 82170)
-
-        sys.stderr.write("mapping loci...")
-        unmapped = 0
-        first_unmapped = ''
-        line_no = 0
-
-        for locus in loci:
-            try:
-                self.chrPos_name_hash[locus]
-            except KeyError:
-                unmapped += 1
-                if first_unmapped == '':
-                    first_unmapped = locus
-                    first_unmapped_line = line_no
-        sys.stderr.write("DONE!\n")
-
-        sys.stderr.write("\n%d unmapped loci\n" % unmapped)
-        if first_unmapped != '':
-            sys.stderr.write("1st unmapped locus: %s (line %d) \n" % (first_unmapped, first_unmapped_line + 1))
-
-    def nearest_two_probes(self, locus, index):
+    def nearest_two_probes(self, locus, index): #{{{
         # finds the two probes closest to the locus
 
         # loops over the locus' in the chromosome, popping as it goes
@@ -238,9 +221,9 @@ class MarkerPosUtil: #{{{
         (l, r) = (int(l), int(r))
 
         return min(abs(l - pos), abs(r - pos))
-#}}}
+    #}}}
 
-def print_unmapped(l, t):
+def print_unmapped_stats(l, t): #{{{
     """
     counts through the list l and prints out some stats concerning length of l.
     t is a string indicating the type l's elements
@@ -250,9 +233,10 @@ def print_unmapped(l, t):
     sys.stderr.write("\n%d unmapped %s\n" %(no, t))
     if (no < 10):
         for el in l:
-            sys.stderr.write("%s\n" %(el))
+            sys.stderr.write("%s\n" %(el,))
+#}}}
 
-def unmapped_opt(args):
+def unmapped_opt(args): #{{{
     input_type = args.input_file_type
     marker_f = args.marker_file
     input_f = args.input_file
@@ -261,16 +245,19 @@ def unmapped_opt(args):
 
     if input_type == 'cbs':
         cbs_segs = read_cbs_segments(input_f)
-        util.map_loci([ (seg.chr, seg.start) for seg in cbs_segs])
+        unmapped = util.unmapped([ seg.get_start_pos() for seg in cbs_segs ])
+        print_unmapped_stats(unmapped, "cbs segments")
+
     elif input_type == 'marker-signal':
         marker_signals = read_marker_signals(input_f)
-        unmapped = util.unmapped_markers([ ms.name for ms in marker_signals ])
-        print_unmapped(unmapped, "markers")
+        unmapped = util.unmapped([ ms.name for ms in marker_signals ])
+        print_unmapped_stats(unmapped, "markers")
 
     input_f.close()
     marker_f.close()
+#}}}
 
-def distance_to_nearest_probe_opt(args):
+def distance_to_nearest_probe_opt(args): #{{{
     marker_f = args.marker_file
     input_f = args.input_file
     out = sys.stderr
@@ -290,8 +277,9 @@ def distance_to_nearest_probe_opt(args):
         #    distances.append(d)
         #    print d
     out.write("DONE!\n")
+    #}}}
 
-# parser stuff
+# parser stuff #{{{
 parser = argparse.ArgumentParser(description="Utils for dealing with sequencing \
         probes.")
 parser.add_argument('--marker_file', '-m', type=argparse.FileType('r'))
@@ -310,3 +298,4 @@ distance.set_defaults(func=distance_to_nearest_probe_opt)
 
 args = parser.parse_args()
 args.func(args)
+#}}}
