@@ -140,7 +140,8 @@ class MarkerPosUtil: #{{{
         return hash
 
     def make_locus_hash(self):
-        # returns a hash of { chr : position } where position is the locus on the chr
+        # returns a hash of { chr : position } where position is the locus on
+        # the chr
 
         # initialize the map
         hash = {}
@@ -163,31 +164,14 @@ class MarkerPosUtil: #{{{
             self.locus_hash = self.make_locus_hash()
         return self.locus_hash
 
-    def map_markers(self, markers):
-        # map a list of marker names using the hash table
-        # and report some stats
-        # marker name, e.g. CN_473982
+    def unmapped_markers(self, markers):
+        """
+        filters through a list of marker ids,
+        returning a list of the ones that are not mapped
+        (i.e. do not have a corresponding chromosome position in the hash table)
+        """
 
-        sys.stderr.write("mapping markers...")
-        unmapped = 0
-        first_unmapped = ''
-        line_no = 0
-
-        for m in markers:
-            line_no+=1
-            try:
-                self.chrPos_name_hash[m]
-            except KeyError:
-                unmapped += 1
-                if first_unmapped == '':
-                    first_unmapped = m
-                    first_unmapped_line = line_no
-
-        sys.stderr.write("DONE!\n")
-
-        sys.stderr.write("\n%d unmapped probe(s)\n" % unmapped)
-        if first_unmapped != '':
-            sys.stderr.write("1st unmapped probe: %s (line %d) \n" % (first_unmapped, first_unmapped_line + 1))
+        return filter(lambda m: not self.chrPos_name_hash.has_key(m), markers)
 
     def map_loci(self, loci):
         # map a list of loci using the hash table
@@ -213,8 +197,10 @@ class MarkerPosUtil: #{{{
         if first_unmapped != '':
             sys.stderr.write("1st unmapped locus: %s (line %d) \n" % (first_unmapped, first_unmapped_line + 1))
 
-    def nearest_two_probes(self, locus):
+    def nearest_two_probes(self, locus, index):
         # finds the two probes closest to the locus
+
+        # loops over the locus' in the chromosome, popping as it goes
 
         hash = self.get_locus_hash()
         chr = str(locus[0])
@@ -222,6 +208,8 @@ class MarkerPosUtil: #{{{
 
         loci = hash[chr]
         loci.sort()     # sorting each time, not sure how expensive this is.
+
+        #for locus in loci
 
         # these functions are from the pydoc
         # http://docs.python.org/2.7/library/bisect.html#searching-sorted-lists
@@ -281,12 +269,12 @@ def distance_to_nearest_probe_opt(args):
 
     out.write("\nfind nearest probes...")
     for seg in cbs_segs:
+        5
         #d = util.distance_to_nearest_probe( (seg.chr, seg.start) )
 
         #if d not in distances:
         #    distances.append(d)
         #    print d
-
     out.write("DONE!\n")
 
 # parser stuff
