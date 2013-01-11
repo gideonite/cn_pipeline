@@ -168,7 +168,8 @@ class MarkerPosUtil: #{{{
         """
         filters through a list of marker ids,
         returning a list of the ones that are not mapped
-        (i.e. do not have a corresponding chromosome position in the hash table)
+        (i.e. do not have a corresponding chromosome and position in the hash
+        table)
         """
 
         return filter(lambda m: not self.chrPos_name_hash.has_key(m), markers)
@@ -239,7 +240,19 @@ class MarkerPosUtil: #{{{
         return min(abs(l - pos), abs(r - pos))
 #}}}
 
-def unmarked_opt(args):
+def print_unmapped(l, t):
+    """
+    counts through the list l and prints out some stats concerning length of l.
+    t is a string indicating the type l's elements
+    """
+
+    no = len(l)
+    sys.stderr.write("\n%d unmapped %s\n" %(no, t))
+    if (no < 10):
+        for el in l:
+            sys.stderr.write("%s\n" %(el))
+
+def unmapped_opt(args):
     input_type = args.input_file_type
     marker_f = args.marker_file
     input_f = args.input_file
@@ -251,7 +264,8 @@ def unmarked_opt(args):
         util.map_loci([ (seg.chr, seg.start) for seg in cbs_segs])
     elif input_type == 'marker-signal':
         marker_signals = read_marker_signals(input_f)
-        util.map_markers([ ms.name for ms in marker_signals ])
+        unmapped = util.unmapped_markers([ ms.name for ms in marker_signals ])
+        print_unmapped(unmapped, "markers")
 
     input_f.close()
     marker_f.close()
@@ -284,11 +298,11 @@ parser.add_argument('--marker_file', '-m', type=argparse.FileType('r'))
 parser.add_argument('--input_file', '-i', type=argparse.FileType('r'))
 subparsers = parser.add_subparsers()
 
-unmarked = subparsers.add_parser('unmarked', help="print some stats about the \
-        number of unmarked probes.")
-unmarked.add_argument('--input_file_type', '-t', type=str, help="The type of the \
+unmapped = subparsers.add_parser('unmapped', help="print some stats about the \
+        number of unmapped probes.")
+unmapped.add_argument('--input_file_type', '-t', type=str, help="The type of the \
         input file: {cbs, marker-signal, marker}")
-unmarked.set_defaults(func=unmarked_opt)
+unmapped.set_defaults(func=unmapped_opt)
 
 distance = subparsers.add_parser('distance', help="find the distance to the \
         nearest probe of loci (e.g. chr and positions).  Only takes CBS output as input")
