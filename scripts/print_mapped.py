@@ -11,8 +11,8 @@ class MarkerPos:
         self.name = name
         self.chr = chr
         self.pos = pos
-    #def __repr__(self):
-    #    return "MarkerSignal(%s, %s)" %(self.name, self.signal)
+    def __repr__(self):
+        return "MarkerSignal(%s, %s)" %(self.name, self.signal)
 
 def read_marker_pos(markerfile_f):
     markerPoses = []
@@ -32,7 +32,7 @@ def hashMarkerPos(mps):
 
     return hash
 
-class CBS_in():
+class Level2Data:
     def __init__(self, name, signal):
         self.name = name
         self.signal = signal
@@ -44,42 +44,42 @@ def read_cbs_input(cbs_input_f):
         if REF.search(line):
             continue
         line = line.split()
-        cbs_in = CBS_in(line[0], line[1])
+        cbs_in = Level2Data(line[0], line[1])
         cbs_ins.append(cbs_in)
     return cbs_ins
 
-def number_unmapped_cbs_ins(hash, cbs_ins):
-    n = 0
+def unmapped_Level2(hash, level2s):
+    unmapped = []
 
-    for cbs_in in cbs_ins:
+    for level2 in level2s:
         try:
-            hash[cbs_in.name]
+            hash[level2.name]
         except KeyError:
-            n = n + 1
-    return n
+            unmapped.append(level2)
+    return unmapped
 
-# hash marker positions
-markerfile_name = sys.argv[1]
-markerfile_f = open(markerfile_name, 'r')
-mps = read_marker_pos(markerfile_f)
-markerfile_f.close()
+class CbsIn:
+    def __init__(self, name, chr, pos, signal):
+        self.name = name
+        self.chr = chr
+        self.pos = pos
+        self.signal = signal
+    def __repr__(self):
+        return "%s\t%s\t%s\t%s" %(self.name, self.chr, self.pos, self.signal)
 
-hash = hashMarkerPos(mps)
+def join_level2_mp(level2, mp):
+    """
+    Level2Data, MarkerPos -> CbsIn
 
-## read CBS input
-#cbsfile_name = sys.argv[2]
-#cbsfile_f = open(cbsfile_name, 'r')
-#cbs_ins = read_cbs_input(cbsfile_f)
-#cbsfile_f.close()
+    takes a Level2Data object and a MarkerPos object and joins them together,
+    forming (and returning!) a CbsIn object
+    """
+    assert(level2.name == mp.name)
+    return CbsIn(mp.name, mp.chr, mp.pos, level2.signal)
 
-# number unmapped
-#print number_unmapped_cbs_ins(hash, cbs_ins)
-path = sys.argv[2]
-cbs_in_filenames = os.listdir(path)
-
-for cbs_in_filename in cbs_in_filenames:
-    print ">>>", cbs_in_filename
-    cbsfile_f = open(cbs_in_filename, 'r')
-    cbs_ins = read_cbs_input(cbsfile_f)
-    cbsfile_f.close()
-    print number_unmapped_cbs_ins(hash, cbs_ins)
+def map_level2(hash, level2):
+    """
+    {probe id : MarkerPos}, Level2Data -> CbsIn
+    """
+    mp = hash[level2.name]
+    return join_level2_mp(level2, mp)
