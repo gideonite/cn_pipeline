@@ -181,39 +181,23 @@ class MarkerPosUtil:
         return filter(lambda m: not self.chrPos_name_hash.has_key(m), markers)
     #}}}
 
-    def nearest_two_probes(self, locus, index): #{{{
-        # finds the two probes closest to the locus
+    def nearest_two_probes(self, positions, pos, index): #{{{
+        """
+        return the two ps in positions that are adjacent to pos.
 
-        # loops over the locus' in the chromosome, popping as it goes
+        index is the index in positions at which to start the search
+        """
+        # sanity check
+        assert(positions[index] < pos)
+        positions = sort(positions)
 
-        hash = self.get_locus_hash()
-        chr = str(locus[0])
-        pos = str(locus[1])
+        ps = positions[index:]
+        ps_len = len(ps)
 
-        loci = hash[chr]
-        loci.sort()     # sorting each time, not sure how expensive this is.
-
-        #for locus in loci
-
-        # these functions are from the pydoc
-        # http://docs.python.org/2.7/library/bisect.html#searching-sorted-lists
-        def find_le(a, x):
-            'Find rightmost value less than or equal to x'
-            i = bisect_right(a, x)
-            if i:
-                return a[i-1]
-            raise ValueError("chromsome probably not found")
-        def find_ge(a, x):
-            'Find leftmost item greater than or equal to x'
-            i = bisect_left(a, x)
-            if i != len(a):
-                return a[i]
-            raise ValueError("chromsome probably not found")
-
-        le = find_le(loci, pos)
-        ge = find_ge(loci, pos)
-
-        return (le, ge)
+        for p_i in xrange(ps_len):
+            if pos < ps[p_i]:
+                # found a least upper bound
+                return (ps[p_i - 1], ps[p_i])
 
     def distance_to_nearest_probe(self, locus):
         pos = int(locus[1])
@@ -266,17 +250,24 @@ def distance_to_nearest_probe_opt(args): #{{{
 
     cbs_segs = read_cbs_segments(input_f)
 
-    distances = []
+    seg = cbs_segs[0]
+    hash = util.get_locus_hash()
+    positions = hash[seg.chr]
+    print util.nearest_two_probes(positions, seg.start, 0)
 
-    out.write("\nfind nearest probes...")
-    for seg in cbs_segs:
-        5
-        #d = util.distance_to_nearest_probe( (seg.chr, seg.start) )
+    #print util.nearest_two_probes(range(100), 3, 5)
 
-        #if d not in distances:
-        #    distances.append(d)
-        #    print d
-    out.write("DONE!\n")
+    #distances = []
+
+    #kout.write("\nfind nearest probes...")
+    #kfor seg in cbs_segs:
+    #k    5
+    #k    #d = util.distance_to_nearest_probe( (seg.chr, seg.start) )
+
+    #k    #if d not in distances:
+    #k    #    distances.append(d)
+    #k    #    print d
+    #kout.write("DONE!\n")
     #}}}
 
 # parser stuff #{{{
