@@ -88,4 +88,7 @@ def map_level2(hash, level2):
 
 if __name__ == "__main__":
     markers_filename = sys.argv[1]
-    level2_filename = sys.argv[2]
+    level2_name = sys.argv[2]
+
+    #if os.path.isfile(level2_filename):
+
