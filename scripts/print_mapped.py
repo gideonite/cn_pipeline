@@ -36,6 +36,8 @@ class Level2Data:
     def __init__(self, name, signal):
         self.name = name
         self.signal = signal
+    def __eq__(self, other):
+        return self.name == other.name and self.signal == other.signal
 
 def read_cbs_input(cbs_input_f):
     cbs_ins = []
@@ -83,3 +85,7 @@ def map_level2(hash, level2):
     """
     mp = hash[level2.name]
     return join_level2_mp(level2, mp)
+
+if __name__ == "__main__":
+    markers_filename = sys.argv[1]
+    level2_filename = sys.argv[2]
