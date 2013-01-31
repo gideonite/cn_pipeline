@@ -30,6 +30,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 
+"""
+found this at
+http://blog.mckuhn.de/2008/03/using-makefiles-for-jobs-that-run-on.html
+"""
+
 import sys
 import os
 import re
