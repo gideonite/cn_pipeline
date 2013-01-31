@@ -94,9 +94,8 @@ def map_level2(hash, level2):
     return join_level2_mp(level2, mp)
 
 if __name__ == "__main__":
-    err = sys.stderr
     if len(sys.argv) != 3:
-        err.write("usage: <markersfile> <file or dir of level2 data>")
+        print "usage: <markersfile> <file or dir of level2 data>"
         sys.exit(-1)
 
     markers_filename = sys.argv[1]
@@ -113,7 +112,7 @@ if __name__ == "__main__":
     else:
         level2_filenames = os.listdir(level2_dir)
 
-    err.write('unmapped probes')
+    print 'unmapped probes'
     for filename in level2_filenames:
         basename = os.path.basename(filename)
 
@@ -123,7 +122,7 @@ if __name__ == "__main__":
 
         # get all the probes that are unmapped
         unmapped = filter(lambda x: not hash_markerpos.has_key(x.name), level2s)
-        err.write("\t%d\t%s" %(len(unmapped), basename))
+        print "\t%d\t%s" %(len(unmapped), basename)
 
         # get all the probes that are mapped,
         # and map them,
