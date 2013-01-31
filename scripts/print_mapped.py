@@ -94,8 +94,9 @@ def map_level2(hash, level2):
     return join_level2_mp(level2, mp)
 
 if __name__ == "__main__":
+    err = sys.stderr
     if len(sys.argv) != 3:
-        print "usage: <markersfile> <file or dir of level2 data>"
+        err.write("usage: <markersfile> <file or dir of level2 data>")
         sys.exit(-1)
 
     markers_filename = sys.argv[1]
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     else:
         level2_filenames = os.listdir(level2_dir)
 
-    print 'unmapped probes'
+    err.write('unmapped probes')
     for filename in level2_filenames:
         basename = os.path.basename(filename)
 
@@ -122,7 +123,7 @@ if __name__ == "__main__":
 
         # get all the probes that are unmapped
         unmapped = filter(lambda x: not hash_markerpos.has_key(x.name), level2s)
-        print "\t%d\t%s" %(len(unmapped), basename)
+        err.write("\t%d\t%s" %(len(unmapped), basename))
 
         # get all the probes that are mapped,
         # and map them,
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         cbs_ins = map(lambda x: map_level2(hash_markerpos, x), mapped)
 
         # make a cbs_in file
-        out = open('cbs_in/' + basename + ".cbs_in", 'w')
+        out = open('cbs/in/' + basename + ".cbs_in", 'w')
         out.truncate()
         out.write(CBS_IN_HEADER + "\n")
 
