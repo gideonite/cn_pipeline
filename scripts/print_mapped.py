@@ -132,7 +132,7 @@ if __name__ == "__main__":
         cbs_ins = map(lambda x: map_level2(hash_markerpos, x), mapped)
 
         # make a cbs_in file
-        out = open(os.path.join(output_dir, basename, ".cbs_in"), 'w')
+        out = open(os.path.join(output_dir, basename + ".cbs_in"), 'w')
         out.truncate()
         out.write(CBS_IN_HEADER + "\n")
 
