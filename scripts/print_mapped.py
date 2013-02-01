@@ -94,12 +94,13 @@ def map_level2(hash, level2):
     return join_level2_mp(level2, mp)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print "usage: <markersfile> <file or dir of level2 data>"
+    if len(sys.argv) != 4:
+        print "usage: <markersfile> <file or dir of level2 data> <output_dir>"
         sys.exit(-1)
 
     markers_filename = sys.argv[1]
     level2_dir = sys.argv[2]
+    output_dir = sys.argv[3]
 
     # make a hash table out of markerfile
     f = open(markers_filename, 'r')
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         cbs_ins = map(lambda x: map_level2(hash_markerpos, x), mapped)
 
         # make a cbs_in file
-        out = open('cbs/in/' + basename + ".cbs_in", 'w')
+        out = open(os.path.join(output_dir, basename, ".cbs_in"), 'w')
         out.truncate()
         out.write(CBS_IN_HEADER + "\n")
 
