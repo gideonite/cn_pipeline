@@ -1,4 +1,4 @@
-#R CMD BATCH --no-save "--args ../data/AMAZE_p_TCGASNP_b86_87_88_N_GenomeWideSNP_6_A11_735446.tangent.copynumber.data.txt.cbs_in.clean /Users/dresdneg/Dropbox/dev/pipeline/cbs/out/" ../scripts/run_cbs.r cbs.log
+#R CMD BATCH --no-save "--args in_file out_dir" /path/to/run_cbs.r cbs.log
 
 args <- commandArgs(trailingOnly = TRUE);
 
