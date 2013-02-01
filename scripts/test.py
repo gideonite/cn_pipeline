@@ -7,7 +7,7 @@ mps = [MarkerPos('probe 1', '1', '123456'), MarkerPos('probe 2', '2',\
 '123456'), MarkerPos('probe 3', '3', '123456'), MarkerPos('probe 4', '4',\
 '123456'), MarkerPos('probe 5', '5', '123456')]
 
-hash = hashMarkerPos(mps)
+hash = hash_MarkerPos(mps)
 
 level2s = [ Level2Data('probe 1', '0.1'), Level2Data('probe 2', '0.2'), \
         Level2Data('probe 3', '0.3'), Level2Data('probe 4', '0.4'),\
