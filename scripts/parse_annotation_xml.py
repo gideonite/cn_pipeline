@@ -26,6 +26,7 @@ def parse_xml(xml_file):
     assert loci_test['end'] == '99480344'
 
     ignore = ['HsCGHBrightCorner', 'DarkCorner']
+    unrecognized = 0
 
     for event, el in ElementTree.iterparse(xml_file):
         if el.tag == "reporter":
@@ -36,9 +37,10 @@ def parse_xml(xml_file):
                     parsed['name'] = name
                     yield parsed
                 except IndexError as e:
-                    print "<", name, "> not recognized"
-                    sys.exit(-1)
+                    #sys.stderr.write("%s not recognized\n" %(name))
+                    unrecognized += 1
                 el.clear()
+    sys.stderr.write("%d unrecognized probes\n" %(unrecognized))
 
 if len(sys.argv) != 2:
     print "usage: <agilent-annotation.xml>. output is printed to stdout"
