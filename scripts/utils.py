@@ -127,6 +127,22 @@ class CbsOut:
         return "%s\t%s\t%s\t%s\t%s\t%s" %(self.sample_id, self.chr,\
                 self.seg_start, self.seg_end, self.num_markers, self.seg_mean)
 
+def read_cbs_out(filename):
+    """
+    reads in a cbs file
+    """
+    cbs_outs = []
+
+    for line in filename.readlines():
+        line = line.split()
+
+        cbs_out = CbsOut(line[0], line[1], line[2], line[3], line[4], line[5])
+        cbs_outs.append(cbs_out)
+
+    return cbs_outs
+
+
+
 def reduce_markers_by_cbs(hash, cbsIns):
     """
     {[chr, pos] -> MarkerPos} , [CbsIn] --> [MarkerPos]

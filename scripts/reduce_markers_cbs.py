@@ -21,3 +21,5 @@ f = open(markers_filename, 'r')
 mps = read_markerpos(f)
 f.close()
 hash_markerpos = hash_MarkerPos(mps)
+
+
