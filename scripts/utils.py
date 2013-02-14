@@ -133,11 +133,12 @@ def read_cbs_out(filename):
     """
     cbs_outs = []
 
+    seg_mean = re.compile("seg.mean")
     for line in filename.readlines():
-        line = line.split()
-
-        cbs_out = CbsOut(line[0], line[1], line[2], line[3], line[4], line[5])
-        cbs_outs.append(cbs_out)
+        if not seg_mean.search(line):
+            line = line.split()
+            cbs_out = CbsOut(line[0], line[1], line[2], line[3], line[4], line[5])
+            cbs_outs.append(cbs_out)
 
     return cbs_outs
 
