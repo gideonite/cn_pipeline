@@ -117,7 +117,7 @@ class CbsOut:
     CBS output format
     """
     def __init__(self, sample_id, chr, seg_start, seg_end, num_markers, seg_mean):
-        self.sampe_id = sample_id
+        self.sample_id = sample_id
         self.chr = chr
         self.seg_start = seg_start
         self.seg_end = seg_end
