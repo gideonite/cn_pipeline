@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from print_mapped import *
+from utils import *
 
 # init some test objects
 mps = [MarkerPos('probe 1', '1', '123456'), MarkerPos('probe 2', '2',\

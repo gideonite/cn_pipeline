@@ -1,3 +1,6 @@
+import sys
+from utils import *
+
 if len(sys.argv) != 4:
     print "usage: <markersfile> <file or dir of level2 data> <output_dir>"
     sys.exit(-1)
