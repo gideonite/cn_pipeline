@@ -143,18 +143,18 @@ def read_cbs_out(filename):
 
 
 
-def reduce_markers_by_cbs(hash, cbsIns):
+def reduce_markers_by_cbs(hash, cbs_outs):
     """
     {[chr, pos] -> MarkerPos} , [CbsIn] --> [MarkerPos]
     returns all the MarkerPos that have a corresponding CBS segment
     """
     mps = []
-    for cbs_in in cbsIns:
+    for cbs_out in cbs_outs:
         try:
-            mp = hash[ (cbs_in.chr, cbs_in.seg_start) ]
+            mp = hash[ (cbs_out.chr, cbs_out.seg_start) ]
             mps.append(mp)
         except KeyError:
-            print "unmapped segment", cbs_in
+            print "unmapped segment", cbs_out
             sys.exit(-1)
     return mps
 

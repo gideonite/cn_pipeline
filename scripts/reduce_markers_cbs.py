@@ -22,4 +22,7 @@ mps = read_markerpos(f)
 f.close()
 hash_markerpos = hash_MarkerPos(mps)
 
-
+# read in the cbs_outs
+f = open(cbs_file)
+cbs_outs = read_cbs_out(f)
+f.close()
