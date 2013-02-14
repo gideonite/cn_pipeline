@@ -26,3 +26,8 @@ hash_markerpos = hash_MarkerPos(mps)
 f = open(cbs_file)
 cbs_outs = read_cbs_out(f)
 f.close()
+
+mps = reduce_markers_by_cbs(hash_markerpos, cbs_outs)
+
+for mp in mps:
+    print mp

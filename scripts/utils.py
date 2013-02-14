@@ -141,8 +141,6 @@ def read_cbs_out(filename):
 
     return cbs_outs
 
-
-
 def reduce_markers_by_cbs(hash, cbs_outs):
     """
     {[chr, pos] -> MarkerPos} , [CbsIn] --> [MarkerPos]
