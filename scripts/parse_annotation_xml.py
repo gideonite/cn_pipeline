@@ -3,6 +3,7 @@
 import xml.etree.cElementTree as ElementTree
 import sys
 import re
+import pandas
 
 def parse_xml(xml_file):
     """
@@ -50,7 +51,9 @@ xml_filename = sys.argv[1]
 
 xml_f = open(xml_filename, 'r')
 
-print 'name', '\t' 'chr', '\t', 'start', '\t', 'end', '\t'
+#print 'name', '\t' 'chr', '\t', 'start', '\t', 'end'
+print '%s\t%s\t%s\t%s' %('name', 'chr', 'start', 'end')
+
 for x in parse_xml(xml_f):
     print x['name'], '\t', x['chr'], '\t', x['start'], '\t', x['end']
 
