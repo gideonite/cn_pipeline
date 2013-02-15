@@ -32,7 +32,11 @@ def read_markerpos(markerfile_f):
     for line in markerfile_f.readlines():
         line = line.split()
 
-        mp = MarkerPos(line[0], line[1], line[2])
+        try:
+            mp = MarkerPos(line[0], line[1], line[2])
+        except IndexError:
+            print line
+            sys.exit(-1)
         markerPoses.append(mp)
 
     return markerPoses
@@ -45,7 +49,7 @@ def hash_MarkerPos(mps):
     hash = {}
     for mp in mps:
         hash[mp.name] = mp
-        hash[ (chr, mp.pos) ] = mp
+        hash[ (mp.chr, mp.pos) ] = mp
 
     return hash
 
