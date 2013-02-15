@@ -1,162 +1,79 @@
 #!/usr/bin/python
 
-"""
-Utils for dealing with markerfiles, cbs input, and cbs output.
-
-Contains:
-- classes for each data type
-- functions for reading in data from files
-- functions for doing various filtering of data
-
-Gideon Dresdner     <dresdnerg@cbio.mskcc.org>
-"""
-
+import csv
 import sys
-import re
-import os
 
-REF = re.compile("REF")
-CBS_IN_HEADER="probe_id\tchr\tpos\tsignal"      # important : this is synched with run_cbs.r
+columns_aliases = {
+        'chrom': 'chr',
+        'name': 'probe_id',
+        'start': 'pos'
+        }
 
-class MarkerPos:
-    def __init__(self, name, chr, pos):
-        self.name = name
-        self.chr = chr
-        self.pos = pos
-    def __repr__(self):
-        return "MarkerPos(%s, %s, %s)" %(self.name, self.chr, self.pos)
+def read_data(filename, delimiter="\t"):
+    """
+    opens the file, reads it in using DictReader and returns a list of dict
+    rows.
 
-def read_markerpos(markerfile_f):
-    markerPoses = []
+    This is basically just a wrapper around DictReader which normalizes column
+    names per the columns_aliases
+    """
+    csv.register_dialect('delimited', delimiter='\t')
+    f = open(filename, 'r')
+    reader = csv.DictReader(f, dialect='delimited')
 
-    for line in markerfile_f.readlines():
-        line = line.split()
+    rows = []
+    for row in reader:
+        for key in row:
+            try:
+                new_key = columns_aliases[key.strip()]
+            except KeyError:
+                new_key = key
+            row[new_key.strip()] = row.pop(key).strip()
+        rows.append(row)
+    f.close()
 
+    return rows
+
+def make_hash(rows, key):
+    """
+    returns a dictionary of key to row.
+
+    key is basically a column header
+    """
+    return_dict = {}
+
+    for row in rows:
         try:
-            mp = MarkerPos(line[0], line[1], line[2])
-        except IndexError:
-            print line
-            sys.exit(-1)
-        markerPoses.append(mp)
-
-    return markerPoses
-
-def hash_MarkerPos(mps):
-    """
-    returns {name, (chr, pos) -> MarkerPos}
-    a hashmap with name keys and [chr, pos] keys that both map to MarkerPos
-    """
-    hash = {}
-    for mp in mps:
-        hash[mp.name] = mp
-        hash[ (mp.chr, mp.pos) ] = mp
-
-    return hash
-
-class Level2Data:
-    def __init__(self, name, signal):
-        self.name = name
-        self.signal = signal
-    def __repr__(self):
-        return "Level2Data(%s, %s)" %(self.name, self.signal)
-    def __eq__(self, other):
-        return self.name == other.name and self.signal == other.signal
-
-def read_level2_data(cbs_input_f):
-    """
-    file -> [Level2Data]
-    """
-
-    cbs_ins = []
-
-    for line in cbs_input_f.readlines():
-        if REF.search(line):
-            continue
-        line = line.split()
-        cbs_in = Level2Data(line[0], line[1])
-        cbs_ins.append(cbs_in)
-    return cbs_ins
-
-def unmapped_Level2(hash, level2s):
-    unmapped = []
-
-    for level2 in level2s:
-        try:
-            hash[level2.name]
+            val = row[key]
+            return_dict[val] = row
         except KeyError:
-            unmapped.append(level2)
-    return unmapped
+            print 'no such key:', key
+            break
 
-class CbsIn:
-    """
-    CBS input format
-    """
-    def __init__(self, name, chr, pos, signal):
-        self.name = name
-        self.chr = chr
-        self.pos = pos
-        self.signal = signal
-    def __repr__(self):
-        return "%s\t%s\t%s\t%s" %(self.name, self.chr, self.pos, self.signal)
+    return return_dict
 
-def join_level2_mp(level2, mp):
+def join_probe_signal(markers, signals):
     """
-    Level2Data, MarkerPos -> CbsIn
+    markers : { probe_id, chr, pos }
+    signals : { probe_id, signal }
 
-    takes a Level2Data object and a MarkerPos object and joins them together,
-    forming (and returning!) a CbsIn object
-    """
-    assert(level2.name == mp.name)
-    return CbsIn(mp.name, mp.chr, mp.pos, level2.signal)
+    hashes the markers by probe_id, then joins each signal to it's marker.
+    Prints a count of the number of unmapped signals
 
-def map_level2(hash, level2):
+    returns: list of { probe_id, chr, pos, signal } for input into CBS
     """
-    {probe id : MarkerPos}, Level2Data -> CbsIn
-    """
-    mp = hash[level2.name]
-    return join_level2_mp(level2, mp)
+    unmapped = 0
+    to_return = []
 
-class CbsOut:
-    """
-    CBS output format
-    """
-    def __init__(self, sample_id, chr, seg_start, seg_end, num_markers, seg_mean):
-        self.sample_id = sample_id
-        self.chr = chr
-        self.seg_start = seg_start
-        self.seg_end = seg_end
-        self.num_markers = num_markers
-        self.seg_mean = seg_mean
-    def __repr__(self):
-        return "%s\t%s\t%s\t%s\t%s\t%s" %(self.sample_id, self.chr,\
-                self.seg_start, self.seg_end, self.num_markers, self.seg_mean)
+    hash = make_hash(markers, 'probe_id')
 
-def read_cbs_out(filename):
-    """
-    reads in a cbs file
-    """
-    cbs_outs = []
+    for s in signals:
+        probe_id = s['probe_id']        # let this fail
 
-    ID = re.compile("ID")
-    for line in filename.readlines():
-        if not ID.search(line):
-            line = line.split()
-            cbs_out = CbsOut(line[0], line[1], line[2], line[3], line[4], line[5])
-            cbs_outs.append(cbs_out)
-
-    return cbs_outs
-
-def reduce_markers_by_cbs(hash, cbs_outs):
-    """
-    {[chr, pos] -> MarkerPos} , [CbsIn] --> [MarkerPos]
-    returns all the MarkerPos that have a corresponding CBS segment
-    """
-    mps = []
-    for cbs_out in cbs_outs:
         try:
-            mp = hash[ (cbs_out.chr, cbs_out.seg_start) ]
-            mps.append(mp)
+            hash[probe_id]['signal'] = s['signal']
         except KeyError:
-            print "unmapped segment", cbs_out
-    return mps
+            unmapped += 1
 
+    sys.stderr.write('unmapped: %d\n' % (unmapped))
+    return hash.values()
