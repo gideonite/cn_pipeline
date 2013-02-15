@@ -154,6 +154,5 @@ def reduce_markers_by_cbs(hash, cbs_outs):
             mps.append(mp)
         except KeyError:
             print "unmapped segment", cbs_out
-            sys.exit(-1)
     return mps
 
