@@ -87,4 +87,41 @@ def print_probe_signal(probe_signals):
     header = "%s\t%s\t%s\t%s" %( 'probe_id', 'chr', 'pos', 'signal')
     print header
     for ps in probe_signals:
-        print "%s\t%s\t%s\t%s" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'])
+        print "%s\t%s\t%s\t%s" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] )
+
+def main():
+    import argparse
+
+    description = """
+    These are some functions for munging probe level data, cbs output, and
+    markersfiles
+    """
+    parser = argparse.ArgumentParser(description=description)
+
+    #if len(sys.argv) == 1:
+    #    print parser.parse_args(["-h"])
+    #    sys.exit(0)
+
+    subparsers = parser.add_subparsers()
+
+    join_probe_signal_parser = subparsers.add_parser('join_probe_signal')
+    join_probe_signal_parser.add_argument('level_2', action='store')
+    join_probe_signal_parser.add_argument('markersfile', action='store')
+    join_probe_signal_parser.set_defaults(which="join_probe_signal")
+
+    filter_markers = subparsers.add_parser('filter_markers')
+    filter_markers.add_argument('markersfile', action='store')
+    filter_markers.add_argument('cbs_out', action='store')
+    filter_markers.set_defaults(which="filter_markers")
+
+    args = parser.parse_args()
+    #args = parser.parse_args(["join_probe_signal", "test/cbs_in.txt", "test/agilent_markersfile.txt" ])
+    #print parser.parse_args(["filter_markers", "level2", "markers" ])
+
+    if args.which == 'join_probe_signal':
+        level2s = read_data(args.level_2)
+        markers = read_data(args.markersfile)
+        joined = join_probe_signal(markers, level2s)
+        print_probe_signal(joined)
+
+if __name__ == "__main__": main()

@@ -15,6 +15,9 @@ level_2s = read_data('test/cbs_in.txt')
 #print make_hash(markers, 'name')
 #print make_hash(level_2s, 'name')
 
-print join_probe_signal(markers, level_2s)
+joined = join_probe_signal(markers, level_2s)
+#for x in joined:
+#    print x
+print_probe_signal(joined)
 
 print "\nall tests passed"
