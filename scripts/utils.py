@@ -77,3 +77,14 @@ def join_probe_signal(markers, signals):
 
     sys.stderr.write('unmapped: %d\n' % (unmapped))
     return hash.values()
+
+def print_probe_signal(probe_signals):
+    """
+    prints out a row in the correct tab-delimited way, here's an example row:
+
+    {'chr': '1', 'pos': '760188', 'probe_id': 'A_18_P10001394', 'signal': '2.971'}
+    """
+    header = "%s\t%s\t%s\t%s" %( 'probe_id', 'chr', 'pos', 'signal')
+    print header
+    for ps in probe_signals:
+        print "%s\t%s\t%s\t%s" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'])
