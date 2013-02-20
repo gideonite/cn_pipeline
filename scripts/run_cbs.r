@@ -18,4 +18,4 @@ CNA.object = CNA(cbs_in$signal, cbs_in$chr, cbs_in$pos, data.type="logratio", sa
 smoothed.CNA.object <- smooth.CNA(CNA.object);
 segment.smoothed.CNA.object <- segment(smoothed.CNA.object, verbose=1);
 
-write.table(segment.smoothed.CNA.object$out, row.names=FALSE, quote=FALSE, file=paste(out_dir, basename(in_file), ".cbs_out", sep=""), sep = "\t")
+write.table(segment.smoothed.CNA.object$out, row.names=FALSE, quote=FALSE, sep = "\t");
