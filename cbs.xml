@@ -1,0 +1,16 @@
+<tool id="cbs" name="CBS">
+    <description>runs cbs on a log2 normalized sample</description>
+    <command interpreter="r">
+    R CMD BATCH --no-save "--args $input_file $output_file" pipeline/scripts/run_cbs.r log_file
+    </command>
+    <inputs>
+        <param format="tabular" name="input_file" type="data" label="input file"/>
+    </inputs>
+    <outputs>
+        <data format="tabular" name="output_file"/>
+    </outputs>
+    <help>
+        this tool computes the segments from a file of normalized probes
+        (columns : Probe Name | Chr | Position | Signal)
+    </help>
+</tool>
