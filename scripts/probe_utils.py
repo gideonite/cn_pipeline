@@ -2,6 +2,7 @@
 
 import csv
 import sys
+import os
 
 columns_aliases = {
         'chrom': 'chr',
@@ -68,7 +69,11 @@ def join_probe_signal(markers, signals):
     hash = make_hash(markers, 'probe_id')
 
     for s in signals:
-        probe_id = s['probe_id']        # let this fail
+        try:
+            probe_id = s['probe_id']        # let this fail
+        except KeyError:
+            print 'no column by the name of "probe_id"', s
+            sys.exit(-1)
 
         try:
             hash[probe_id]['signal'] = s['signal']
@@ -78,16 +83,19 @@ def join_probe_signal(markers, signals):
     sys.stderr.write('unmapped: %d\n' % (unmapped))
     return hash.values()
 
-def print_probe_signal(probe_signals):
+def print_probe_signal(probe_signals, out):
     """
     prints out a row in the correct tab-delimited way, here's an example row:
 
     {'chr': '1', 'pos': '760188', 'probe_id': 'A_18_P10001394', 'signal': '2.971'}
     """
-    header = "%s\t%s\t%s\t%s" %( 'probe_id', 'chr', 'pos', 'signal')
-    print header
+    header = "%s\t%s\t%s\t%s\n" %( 'probe_id', 'chr', 'pos', 'signal')
+    out.write(header)
     for ps in probe_signals:
-        print "%s\t%s\t%s\t%s" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] )
+        try:
+            out.write("%s\t%s\t%s\t%s\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
+        except KeyError:
+            print 'could not find a column in row', ps
 
 def main():
     import argparse
@@ -98,16 +106,17 @@ def main():
     """
     parser = argparse.ArgumentParser(description=description)
 
-    #if len(sys.argv) == 1:
-    #    print parser.parse_args(["-h"])
-    #    sys.exit(0)
+    if len(sys.argv) == 1:
+        print parser.parse_args(["-h"])
+        sys.exit(0)
 
     subparsers = parser.add_subparsers()
 
     join_probe_signal_parser = subparsers.add_parser('join_probe_signal')
-    join_probe_signal_parser.add_argument('level_2', action='store')
     join_probe_signal_parser.add_argument('markersfile', action='store')
+    join_probe_signal_parser.add_argument('level_2', action='store')
     join_probe_signal_parser.set_defaults(which="join_probe_signal")
+    join_probe_signal_parser.add_argument('-o', '--output_file', action='store')
 
     filter_markers = subparsers.add_parser('filter_markers')
     filter_markers.add_argument('markersfile', action='store')
@@ -115,13 +124,24 @@ def main():
     filter_markers.set_defaults(which="filter_markers")
 
     args = parser.parse_args()
-    #args = parser.parse_args(["join_probe_signal", "test/cbs_in.txt", "test/agilent_markersfile.txt" ])
-    #print parser.parse_args(["filter_markers", "level2", "markers" ])
-
     if args.which == 'join_probe_signal':
         level2s = read_data(args.level_2)
         markers = read_data(args.markersfile)
+        sys.stderr.write(os.path.basename(args.level_2) + "\t")
         joined = join_probe_signal(markers, level2s)
-        print_probe_signal(joined)
+
+        if args.output_file:
+            out = open(args.output_file, 'w+')
+            print_probe_signal(joined, out)
+            out.close()
+        else:
+            print_probe_signal(joined, sys.stdout)
+
+    # for playing around with argparse
+    #
+    #args = parser.parse_args(["join_probe_signal", "test/cbs_in.txt", "test/agilent_markersfile.txt" ])
+    #print args
+    #parser.parse_args(["filter_markers", "level2", "markers" ])
+
 
 if __name__ == "__main__": main()
