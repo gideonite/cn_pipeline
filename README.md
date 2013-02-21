@@ -1,5 +1,5 @@
 Copy Number Pipeline
---------------------
+====================
 
 This is a pipeline for making copy number calls on array data from platforms
 like Affymetrix SNP6.0.  Currently, it supports analysis from normalized probe
