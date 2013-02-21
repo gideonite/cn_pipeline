@@ -11,7 +11,7 @@ fi
 
 OUT=/tmp/cbs_in.$RANDOM
 mkdir $OUT
-
+out_dir
 for f in `ls $3/*`;
 do
     $1 join_probe_signal $2 $f -o $OUT/`basename $f`
