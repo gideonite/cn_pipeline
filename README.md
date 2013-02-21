@@ -26,6 +26,16 @@ statistical search of recurrent segments.
 
 ## INSTALL
 
+You need to install the algorithms, CBS and GISTIC.
+
+### CBS
+
+Look [here](http://www.bioconductor.org/packages/2.11/bioc/html/DNAcopy.html)
+
+### GISTIC
+
+Look [here](http://www.broadinstitute.org/cgi-bin/cancer/publications/pub_paper.cgi?mode=view&paper_id=216&p=t)
+
 ### Galaxy
 
 Put the folder containing this README file into the Galaxy `tools` directory.
