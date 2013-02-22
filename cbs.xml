@@ -6,7 +6,7 @@
         $cbs_in_path $logfile >$output
     </command>
     <inputs>
-        <param format="tabular" name="cbs_in_path" type="text" label="path/to/cbs_in_dir"/>
+        <param format="tabular" name="cbs_in_path" type="text" label="path/to/cbs_in_dir" size="200"/>
     </inputs>
     <outputs>
         <data format="text" name="output"/>

@@ -1,0 +1,23 @@
+<tool id="gistic" name="GISTIC">
+    <description>runs gistic</description>
+    <command interpreter="bash">
+        $__root_dir__/tools/cn_pipeline/scripts/run_gistic.sh
+        $__root_dir__/tools/cn_pipeline/gistic/gp_gistic2_from_seg
+        $__root_dir__/tools/cn_pipeline/gistic/MATLAB_Component_Runtime
+        $seg_dir $refgene_file
+    </command>
+    <inputs>
+        <param format="tabular" name="markersfile" type="data" label="markersfile"/>
+        <param format="tabular" name="seg_dir" type="text" label="path/to/seg_dir" size="200"/>
+        <param format="tabular" name="refgene_file" type="data" label="reference gene file"/>
+        <!--<param format="tabular" name="alf" type="data" label="array list file" optional="true"/>-->
+        <!--<param format="tabular" name="cnv" type="data" label="Copy number varient file" optional="true"/>-->
+    </inputs>
+    <outputs>
+        <data format="text" name="output"/>
+    </outputs>
+    <help>
+        this tool computes the segments from a file of normalized probes
+        (columns : Probe Name | Chr | Position | Signal)
+    </help>
+</tool>
