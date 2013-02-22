@@ -1,12 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import csv
 import sys
 import os
+import re
 
 columns_aliases = {
         'chrom': 'chr',
         'name': 'probe_id',
+        'Composite Element REF': 'probe_id',
         'start': 'pos'
         }
 
@@ -20,6 +22,13 @@ def read_data(filename, delimiter="\t"):
     """
     csv.register_dialect('delimited', delimiter='\t')
     f = open(filename, 'r')
+
+    # ignore a header line that has this : "Hybridization REF".  TODO: If there are
+    # more of these then you should make a dict of aliases like above
+    first_line = f.readline()
+    if not re.search("Hybridization REF", first_line):
+        f.seek(0)
+
     reader = csv.DictReader(f, dialect='delimited')
 
     rows = []
@@ -30,6 +39,7 @@ def read_data(filename, delimiter="\t"):
             except KeyError:
                 new_key = key
             row[new_key.strip()] = row.pop(key).strip()
+        #if row.
         rows.append(row)
     f.close()
 
@@ -93,7 +103,7 @@ def print_probe_signal(probe_signals, out):
     out.write(header)
     for ps in probe_signals:
         try:
-            out.write("%s\t%s\t%s\t%s\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
+            out.write("%s\t%s\t%s\t%s. Looking for columns ['probe_id', 'chr', 'pos', 'signal']\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
         except KeyError:
             print 'could not find a column in row', ps
 

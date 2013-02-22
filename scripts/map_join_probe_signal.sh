@@ -17,7 +17,7 @@ else
     OUT=/tmp/cbs_in.$RANDOM
 fi
 
-if [ ! -e OUT ]; then
+if [ ! -e $OUT ]; then
     # create the directory if necessary
     mkdir $OUT
 fi
