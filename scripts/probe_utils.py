@@ -8,6 +8,7 @@ import re
 columns_aliases = {
         'chrom': 'chr',
         'name': 'probe_id',
+        '#name': 'probe_id',
         'Composite Element REF': 'probe_id',
         'start': 'pos',
         'Signal': 'signal'
@@ -40,7 +41,6 @@ def read_data(filename, delimiter="\t"):
             except KeyError:
                 new_key = key
             row[new_key.strip()] = row.pop(key).strip()
-        #if row.
         rows.append(row)
     f.close()
 
