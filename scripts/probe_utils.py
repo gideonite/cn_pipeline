@@ -90,9 +90,9 @@ def join_probe_signal(markers, signals):
         except KeyError:
             print 'no column by the name of "probe_id"', s
             sys.exit(-1)
-
         try:
             hash[probe_id]['signal'] = s['signal']
+            del hash[probe_id]
         except KeyError:
             unmapped += 1
 
