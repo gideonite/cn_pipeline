@@ -7,10 +7,12 @@ import re
 
 columns_aliases = {
         'chrom': 'chr',
+        'chromosome': 'chr',
         'name': 'probe_id',
         '#name': 'probe_id',
         'Composite Element REF': 'probe_id',
         'start': 'pos',
+        'position': 'pos',
         'Signal': 'signal'
         }
 
