@@ -9,7 +9,8 @@ columns_aliases = {
         'chrom': 'chr',
         'name': 'probe_id',
         'Composite Element REF': 'probe_id',
-        'start': 'pos'
+        'start': 'pos',
+        'Signal': 'signal'
         }
 
 def read_data(filename, delimiter="\t"):
@@ -47,7 +48,10 @@ def read_data(filename, delimiter="\t"):
 
 def make_hash(rows, key):
     """
-    returns a dictionary of key to row.
+    returns a dictionary of key to row.  The keys of this new dictionary are
+    the values in the column of each row, e.g.
+    {'col1':'val1'} -> { 'val1' : {'col1': 'val1'} }
+        (if the parameter `key` is 'col1')
 
     key is basically a column header
     """
@@ -95,7 +99,7 @@ def join_probe_signal(markers, signals):
 
 def print_probe_signal(probe_signals, out):
     """
-    prints out a row in the correct tab-delimited way, here's an example row:
+    prints out a row as tab-delimited, here's an example row:
 
     {'chr': '1', 'pos': '760188', 'probe_id': 'A_18_P10001394', 'signal': '2.971'}
     """
@@ -103,9 +107,9 @@ def print_probe_signal(probe_signals, out):
     out.write(header)
     for ps in probe_signals:
         try:
-            out.write("%s\t%s\t%s\t%s. Looking for columns ['probe_id', 'chr', 'pos', 'signal']\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
+            out.write("%s\t%s\t%s\t%s\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
         except KeyError:
-            print 'could not find a column in row', ps
+            raise KeyError('could not find a column in row', ps, ". Looking for columns ['probe_id', 'chr', 'pos', 'signal']")
 
 def main():
     import argparse
