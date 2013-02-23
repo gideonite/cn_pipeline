@@ -111,6 +111,7 @@ def print_probe_signal(probe_signals, out):
         try:
             out.write("%s\t%s\t%s\t%s\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
         except KeyError:
+            print ps        # sometimes doesn't get all the way traced back
             raise KeyError('could not find a column in row', ps, ". Looking for columns ['probe_id', 'chr', 'pos', 'signal']")
 
 def main():
