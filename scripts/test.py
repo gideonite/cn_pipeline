@@ -4,7 +4,7 @@ from probe_utils import *
 import sys
 
 def read_data_test():
-    print "read_data test"
+    print "--read_data test--"
     cbs_outs = read_data('test/agilent_cbs.txt')
     markers = read_data('test/agilent_markersfile.txt')
     log2ratios = read_data('test/log2ratio.txt')
@@ -31,25 +31,30 @@ def read_data_test():
     tcga_log2ratios[0]['probe_id']
 
 def make_hash_test():
-    print "\nmake_hash test"
+    print "\n--make_hash test--"
 
     row = dict(( ('col1', 'val1'), ('col2','val2') ))
     assert(make_hash([row], 'col1')['val1'] == row)
 
 def print_probe_signal_test():
-    print "\nprint_probe_signal_test"
+    print "\n--print_probe_signal_test--"
     try:
         print_probe_signal([{'pos': '760188', 'probe_id': 'A_18_P10001394', 'signal': '2.971'}], sys.stdout)
     except KeyError, e:
-        print "\tprint_probe_signal passed"
+        print "\t--print_probe_signal passed--"
         #print e
 
 def join_probe_signal_test():
-    print "\njoin_probe_signal_test"
-    markers = [ dict(( ('probe_id', 'ABC_123'), ('chr', 'X'), ('pos', '1') )) ]
-    signals = [ dict(( ('probe_id', 'ABC_123'), ('signal', 'whahoooooooBOOM!') )) ]
+    print "\n--join_probe_signal_test--"
+    markers = [ dict(( ('probe_id', 'ABC_123'), ('chr', 'X'), ('pos', '1') )),
+            dict(( ('probe_id', 'ABC_1111'), ('chr', 'X'), ('pos', '1') )) ]
+    signals = [ dict(( ('probe_id', 'ABC_123'), ('signal', 'whahoooooooBOOM!') )),
+                dict(( ('probe_id', 'ABC_345'), ('signal', 'whahoooooooBOOM!') )) ]
 
     joined = join_probe_signal(markers, signals)
+
+    assert len(joined) == 1
+
     assert joined[0]['probe_id'] == 'ABC_123'
     assert joined[0]['chr'] == 'X'
     assert joined[0]['signal'] == 'whahoooooooBOOM!'

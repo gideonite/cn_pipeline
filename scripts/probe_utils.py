@@ -64,7 +64,7 @@ def make_hash(rows, key):
             val = row[key]
             return_dict[val] = row
         except KeyError:
-            print 'no such key:', key
+            sys.stderr.write('no such key: %s' %(key))
             break
 
     return return_dict
@@ -88,16 +88,18 @@ def join_probe_signal(markers, signals):
         try:
             probe_id = s['probe_id']        # let this fail
         except KeyError:
-            print 'no column by the name of "probe_id"', s
+            sys.stderr.write('no column by the name of "probe_id" %s' %(s))
             sys.exit(-1)
         try:
             hash[probe_id]['signal'] = s['signal']
-            del hash[probe_id]
         except KeyError:
             unmapped += 1
 
     sys.stderr.write('unmapped: %d\n' % (unmapped))
-    return hash.values()
+
+    # filter out the values in the hash map that don't have corresponding
+    # signals
+    return filter(lambda v: v.has_key('signal'), hash.values())
 
 def print_probe_signal(probe_signals, out):
     """
@@ -111,7 +113,8 @@ def print_probe_signal(probe_signals, out):
         try:
             out.write("%s\t%s\t%s\t%s\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
         except KeyError:
-            print ps        # sometimes doesn't get all the way traced back
+            sys.stderror('\n%s' %(ps))
+
             raise KeyError('could not find a column in row', ps, ". Looking for columns ['probe_id', 'chr', 'pos', 'signal']")
 
 def main():
