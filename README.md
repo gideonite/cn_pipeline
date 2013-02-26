@@ -21,12 +21,26 @@ A markersfile looks like this:
 `probe_name	chromosome	position`
 
 The output of CBS is a list of segments for every sample.  This list of
-segments is then concatenated together and given to the GISTIC algorithm for a
-statistical search of recurrent segments.
+segments is then concatenated together and given to the GISTIC algorithm which
+does a statistical search for recurrent segments.
 
 ## INSTALL
 
 You need to install the algorithms, CBS and GISTIC.
+
+*If you want things to work* out of the box:
+
+1. put your GISTIC installation into `./gistic`
+
+2. put your CBS installation into `./R`
+
+### N.B.
+
+on some systems the MCR might not be able to find the shared library
+`libXp.so.6`, for that reason I've included here and modified `LD_LIBRARY_PATH`
+per this `lib`, directory.  If while running GISTIC you get an error relating
+to this, you may have to deal with it yourself by modifying the env
+initialization in `run_gistic.sh`.
 
 ### CBS
 
