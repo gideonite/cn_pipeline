@@ -3,7 +3,7 @@
     <command interpreter="bash">
         $__root_dir__/tools/cn_pipeline/scripts/map_join_probe_signal.sh
         $__root_dir__/tools/cn_pipeline/scripts/probe_utils.py
-        $markersfile $log2ratio_path >$output 2>$logfile
+        $markersfile $log2ratio_path >$output
     </command>
     <inputs>
         <param format="tabular" name="markersfile" type="data" label="markersfile (just like GISTIC input)"/>
@@ -11,12 +11,11 @@
     </inputs>
     <outputs>
         <data format="text" name="output"/>
-        <data format="text" name="logfile"/>
     </outputs>
     <tests>
         <test>
             command:
-            $__root_dir__/tools/cn_pipeline/scripts/map_join_probe_signal.sh $__root_dir__/tools/cn_pipeline/scripts/probe_utils.py $markersfile $log2ratio_path preprocess_out >$output 2>$logfile
+            $__root_dir__/tools/cn_pipeline/scripts/map_join_probe_signal.sh $__root_dir__/tools/cn_pipeline/scripts/probe_utils.py $markersfile $log2ratio_path preprocess_out >$output
             <param name="markersfile" value="agilent_markersfile.txt"/>
             <param name="log2ratio_path" value="test-data/agilent_cbs_in"/>
             <output name="output" value="preprocess_out/cbs_in.txt"/>

@@ -3,6 +3,7 @@
     <command interpreter="bash">
         $__root_dir__/tools/cn_pipeline/scripts/map_run_cbs.sh
         $__root_dir__/tools/cn_pipeline/scripts/run_cbs.r
+        $__root_dir__/tools/cn_pipeline/R/x86_64-unknown-linux-gnu-library
         $cbs_in_path $logfile >$output
     </command>
     <inputs>
