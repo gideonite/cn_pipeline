@@ -113,9 +113,49 @@ def print_probe_signal(probe_signals, out):
         try:
             out.write("%s\t%s\t%s\t%s\n" %( ps['probe_id'], ps['chr'], ps['pos'], ps['signal'] ))
         except KeyError:
-            sys.stderror('\n%s' %(ps))
+            sys.stderr.write('\n%s' %(ps))
 
             raise KeyError('could not find a column in row', ps, ". Looking for columns ['probe_id', 'chr', 'pos', 'signal']")
+
+def sort_cbs_out(cbs_outs):
+    """
+    sorts CBS output by chromosome and then by position.
+    """
+
+    def compare_chr(x,y):
+        """
+        Y > X > all other chromosomes
+        """
+        x = re.sub("X", "23", str(x))
+        x = re.sub("Y", "24", str(x))
+        y = re.sub("X", "23", str(y))
+        y = re.sub("Y", "24", str(y))
+        return int(x) - int(y)
+
+    assert compare_chr("X", "Y") == -1
+    assert compare_chr("Y", "X") == 1
+    assert compare_chr("Y", "Y") == 0
+    assert compare_chr(0, 1) == -1
+
+    cbs_outs.sort(lambda x, y:
+            compare_chr(x['chr'], y['chr']) or int(x['loc.start']) - int(y['loc.start']))
+
+    return cbs_outs
+
+def format_cbs_out(cbs_out):
+    """
+    returns a tab-delimited string for a cbs_out row (dict) in CBS format (i.e.
+    with CBS column keys)
+
+    '' -> standard CBS header
+    """
+
+    if cbs_out == '':
+        return "ID\tchrom\tloc.start\tloc.end\tnum.mark\tseg.mean"
+
+    return "%s\t%s\t%s\t%s\t%s\t%s" %(cbs_out['ID'], cbs_out['chr'], \
+            cbs_out['loc.start'], cbs_out['loc.end'], cbs_out['num.mark'], \
+            cbs_out['seg.mean'])
 
 def main():
     import argparse
@@ -143,6 +183,10 @@ def main():
     filter_markers.add_argument('cbs_out', action='store')
     filter_markers.set_defaults(which="filter_markers")
 
+    sort_cbs_parser = subparsers.add_parser('sort_cbs')
+    sort_cbs_parser.add_argument('cbs_outs', action='store')
+    sort_cbs_parser.set_defaults(which='sort_cbs')
+
     args = parser.parse_args()
     if args.which == 'join_probe_signal':
         level2s = read_data(args.level_2)
@@ -156,6 +200,13 @@ def main():
             out.close()
         else:
             print_probe_signal(joined, sys.stdout)
+    elif args.which == 'sort_cbs':
+        cbs_outs = read_data(args.cbs_outs)
+        cbs_outs = sort_cbs_out(cbs_outs)
+
+        print format_cbs_out('')
+        for out in cbs_outs:
+            print format_cbs_out(out)
 
     # for playing around with argparse
     #

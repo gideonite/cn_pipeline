@@ -59,9 +59,40 @@ def join_probe_signal_test():
     assert joined[0]['chr'] == 'X'
     assert joined[0]['signal'] == 'whahoooooooBOOM!'
 
+def sort_cbs_out_test():
+    print "\n--sort_cbs_out_test--"
+
+    zero   = dict(( ('ID', 'id-1'), ('chrom', 1), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    one    = dict(( ('ID', 'id-2'), ('chrom', 1), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    two    = dict(( ('ID', 'id-3'), ('chrom', 2), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    three  = dict(( ('ID', 'id-4'), ('chrom', 2), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    four   = dict(( ('ID', 'id-5'), ('chrom', 'X'), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    five   = dict(( ('ID', 'id-6'), ('chrom', 'Y'), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+
+    cbs_outs = [ two, three, one, zero, five, four ]
+
+    sort_cbs_out(cbs_outs)
+
+    assert cbs_outs[0] == zero
+    assert cbs_outs[1] == one
+    assert cbs_outs[2] == two
+    assert cbs_outs[3] == three
+    assert cbs_outs[4] == four
+    assert cbs_outs[5] == five
+
+def format_cbs_out_test():
+    print "\n--format_cbs_out_test--"
+
+    ex = dict(( ('ID', 'id-2'), ('chrom', 1), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943) ))
+
+    assert format_cbs_out('') == "ID\tchrom\tloc.start\tloc.end\tnum.mark\tseg.mean"
+    assert format_cbs_out(ex) == "id-2\t1\t1\t25611452\t3\t5.4943"
+
 read_data_test()
 make_hash_test()
 print_probe_signal_test()
 join_probe_signal_test()
+sort_cbs_out_test()
+format_cbs_out_test()
 
 print "\nall tests passed"
