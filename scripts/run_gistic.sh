@@ -30,15 +30,20 @@ mkdir $basedir
 # merge files
 echo --- merging files ---
 MERGED_SEGS=/tmp/concated_cbs_out.$RANDOM.txt
+
+CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 for f in `ls $SEG_FILES/*`;
 do
     #quick and dirty
     #to sort: replace,  X -> 23, Y ->24, then sort, then replace them back
-    tail -q -n +2 $f \
-    | awk '{ if ($2=="X") {$2=="23"} }1' | awk '{ if ($2=="Y") {$2=="24"} }1' \
-    | sort -k 2,2n -k 3,3n \
-    | awk '{ if ($2=="23") {$2=="X"} }1' | awk '{ if ($2=="24") {$2=="Y"} }1' \
-    >>$MERGED_SEGS
+    #tail -q -n +2 $f \
+    #| awk '{ if ($2=="X") {$2=="23"} }1' | awk '{ if ($2=="Y") {$2=="24"} }1' \
+    #| sort -k 2,2n -k 3,3n \
+    #| awk '{ if ($2=="23") {$2=="X"} }1' | awk '{ if ($2=="24") {$2=="Y"} }1' \
+    #./
+    # >>$MERGED_SEGS
+
+    $CURR_DIR/probe_utils.py sort_cbs $f | tail -q -n +2 >>$MERGED_SEGS
 done
 
 echo $MERGED_SEGS
