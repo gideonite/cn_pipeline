@@ -14,7 +14,7 @@ if [ $4 ]; then
     OUT=$4
 else
     # set a random directory if it is not already specified
-    OUT=/tmp/cbs_in.$RANDOM
+    OUT=/ifs/e63data/sander-lab/dresdnerg/galaxy-tmp/cbs_in.$RANDOM
 fi
 
 if [ ! -e $OUT ]; then

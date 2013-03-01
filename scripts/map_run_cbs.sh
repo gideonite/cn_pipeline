@@ -5,7 +5,7 @@ if [ "$#" -ne 4 ]; then
     exit -1
 fi
 
-OUT=/tmp/cbs_out.$RANDOM
+OUT=/ifs/e63data/sander-lab/dresdnerg/galaxy-tmp/cbs_out.$RANDOM
 mkdir $OUT
 
 R=/srv/opt/R/bin/R

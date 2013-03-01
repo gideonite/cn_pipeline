@@ -24,12 +24,12 @@ export XAPPLRESDIR=$mcr_root/v714/X11/app-defaults
 echo $LD_LIBRARY_PATH
 
 echo --- creating output directory ---
-basedir=/tmp/gistic_out.$RANDOM
+basedir=/ifs/e63data/sander-lab/dresdnerg/galaxy-tmp/gistic_out.$RANDOM
 mkdir $basedir
 
 # merge files
 echo --- merging files ---
-MERGED_SEGS=/tmp/concated_cbs_out.$RANDOM.txt
+MERGED_SEGS=/ifs/e63data/sander-lab/dresdnerg/galaxy-tmp/concated_cbs_out.$RANDOM.txt
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 for f in `ls $SEG_FILES/*`;
