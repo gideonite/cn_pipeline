@@ -62,12 +62,12 @@ def join_probe_signal_test():
 def sort_cbs_out_test():
     print "\n--sort_cbs_out_test--"
 
-    zero   = dict(( ('ID', 'id-1'), ('chrom', 1), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
-    one    = dict(( ('ID', 'id-2'), ('chrom', 1), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
-    two    = dict(( ('ID', 'id-3'), ('chrom', 2), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
-    three  = dict(( ('ID', 'id-4'), ('chrom', 2), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
-    four   = dict(( ('ID', 'id-5'), ('chrom', 'X'), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
-    five   = dict(( ('ID', 'id-6'), ('chrom', 'Y'), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    zero   = dict(( ('ID', 'id-1'), ('chr', 1), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    one    = dict(( ('ID', 'id-2'), ('chr', 1), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    two    = dict(( ('ID', 'id-3'), ('chr', 2), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    three  = dict(( ('ID', 'id-4'), ('chr', 2), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    four   = dict(( ('ID', 'id-5'), ('chr', 'X'), ('loc.start', 0), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
+    five   = dict(( ('ID', 'id-6'), ('chr', 'Y'), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943)))
 
     cbs_outs = [ two, three, one, zero, five, four ]
 
@@ -83,8 +83,9 @@ def sort_cbs_out_test():
 def format_cbs_out_test():
     print "\n--format_cbs_out_test--"
 
-    ex = dict(( ('ID', 'id-2'), ('chrom', 1), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943) ))
+    ex = dict(( ('ID', 'id-2'), ('chr', 1), ('loc.start', 1), ('loc.end', 25611452), ('num.mark', 3), ('seg.mean', 5.4943) ))
 
+    print format_cbs_out('')
     assert format_cbs_out('') == "ID\tchrom\tloc.start\tloc.end\tnum.mark\tseg.mean"
     assert format_cbs_out(ex) == "id-2\t1\t1\t25611452\t3\t5.4943"
 
