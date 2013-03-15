@@ -16,5 +16,7 @@
     <help>
         this tool computes the segments from a file of normalized probes
         (columns : Probe Name | Chr | Position | Signal)
+
+        The input file must have the following three columns: signal, chr, pos.
     </help>
 </tool>
