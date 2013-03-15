@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/ghostscript -dTextAlphaBits=4 -dGraphicsAlphaBits=4 $*

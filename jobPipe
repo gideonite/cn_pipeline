@@ -1,0 +1,48 @@
+#!/bin/bash
+# #$ -clear
+#$ -q all.q,limit.q
+###$ -q bs_primary
+#$ -pe alloc 2
+#
+# Set shell for job
+#$ -S /bin/bash
+#
+# Execute job from current working directory
+#$ -cwd
+#
+# merge std error and std out into one file
+#$ -j y
+#
+#$ -o LOG__$JOB_ID
+#
+
+#/home/liang/bin/loadBal
+
+#R="/home/dresdnerg/local/bin/R"
+R="/opt/bin/R-2.12.1/bin/R"
+export R_GSCMD="./Rlib/RGS"
+
+ID=$(echo $ID $SGE_TASK_ID | awk '{printf("%05d",$1)}')
+
+echo $ID $ID `hostname`
+echo $ID $ID `pwd`
+
+infile=$(head -$SGE_TASK_ID $1 | tail -1)
+basefile=`basename $infile`
+basepath=${infile%%.txt*}
+
+echo $ID "infile" $infile
+echo $ID "basefile" $basefile
+echo $ID "basepath" $basepath
+
+logfile=${basefile}.log
+echo $ID "logfile" $logfile
+
+normfile=${basepath}__GCN_V3.txt
+cbslog=${basefile}.CBS.log
+
+echo $ID "normfile" $normfile
+
+time $R CMD BATCH --no-save --args --file=$infile Rlib/gcNorm.R $logfile
+
+time $R CMD BATCH --no-save --args --file=$normfile Rlib/doCBSV3.R $cbslog

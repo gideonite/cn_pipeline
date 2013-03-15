@@ -1,0 +1,120 @@
+##
+## $Source$
+## $Date: 2007/04/06 23:58:35 $
+##
+if(!exists("revision")) revision=list()
+revision$doCBS = '$Id$'
+cat(revision$gcNorm,"\n")
+
+library(DNAcopy)
+source("~/lWork/Rlib/getOpts.R")
+source("~/lWork/Rlib/fileTools.R")
+source("cbsTools.R")
+
+args=getopts()
+
+if(!is.null(args$taskNo)) {
+  ##
+  ## Running on cluster
+  ##
+  files=scan("files","",sep="\n")
+  cat("Task No:", args$taskNo, "\n")
+  file=files[as.numeric(args$taskNo)]
+} else {
+  file=args$file
+}
+
+cat("File:", file, "\n")
+pos=regexpr(".txt",file)
+nameTmpl=substr(file,1,pos-1)
+
+##################
+##################
+
+alpha=0.01
+nperm=10000
+
+####
+####
+
+path=strsplit(file,"/")[[1]]
+samp=strsplit(path[length(path)],"__GCN")[[1]][1]
+print(samp)
+
+if(is.bzfile(file)) {
+  dd=read.delim(bzfile(file),as.is=T,check.names=F)
+} else {
+  dd=read.delim(file,as.is=T,check.names=F)
+}
+
+dd$Ch=as.numeric(factor(((dd$Ch)),levels=c(1:22,"X","Y")))
+
+##
+## Merge Probes that are probing the same gene
+## 
+tag=paste(dd[,2],dd[,3])
+jj=which(duplicated(tag))
+cnt=length(jj)
+while(cnt>0) {
+  cat(cnt,"\n")
+  ii=which(tag==tag[jj[1]])
+  dd[ii[1],4]=median(dd[ii,4],na.rm=T)
+  dd[ii[1],1]=paste(dd[ii,1],sep="",collapse=':')
+  dd=dd[-ii[2:length(ii)],]
+  tag=paste(dd[,2],dd[,3])
+  jj=which(duplicated(tag))
+  cnt=length(jj)  
+}
+
+cna=CNA(dd[,4],dd$Ch,dd$Pos,"logratio",samp)
+
+smCNA=smooth.CNA(cna)
+
+smOut=as.matrix(smCNA)
+rownames(smOut)=dd[,1]
+ofile=paste(nameTmpl,"Smooth.txt",sep="__")
+write.xls(smOut,ofile)
+
+d=segment(smCNA,verbose=T,alpha=alpha,nperm=nperm,undo.splits='sdundo')
+
+##fileName=paste(file,"Np",nperm,"alpha",alpha,"cbs.Rdata",sep="_")
+rfile=paste(nameTmpl,"CBS_out.Rdata",sep="__")
+save(d,file=rfile,compress=T)
+
+source("format.cbs.R")
+p.out=segments.p(d)
+ffile=paste(nameTmpl,"CBS_out.txt",sep="__")
+format.cbs(d,p.out,ffile)
+
+##
+## Map segments onto genome
+## normalize diploid peak
+##
+seg = double(nrow(d$data))
+ssd = double(nrow(d$data))
+d$output$seg.sd=double(nrow(d$output))
+for(j in seq(nrow(d$output))) {
+  rr = (
+        d$data$chrom==d$output$chrom[j]
+        & d$data$maploc>=d$output$loc.start[j]
+        & d$data$maploc<=d$output$loc.end[j]
+        )
+  seg[rr] = d$output$seg.mean[j]
+  ssd[rr] = sd(d$data[rr,3],na.rm=T)
+  d$output$seg.sd[j]=sd(d$data[rr,3],na.rm=T)
+}
+
+DN=median(abs(diff(dd[,4])),na.rm=T)
+P.norm=density(seg,bw=DN/8,from=-DN/2,to=DN/2,na.rm=T)
+pk=get.diploid.peak(P.norm)
+seg=seg-P.norm$x[pk]
+
+ans=cbind(dd[,2:3],seg)
+colnames(ans)[3]=samp
+rownames(ans)=dd[,1]
+sfile=paste(nameTmpl,"NormSegs.txt",sep="__")
+write.xls(ans,sfile)
+
+##################
+##################
+cat(paste("\n__","Finished__",sep=""),args$taskNo,"\t",file,"\n\n")

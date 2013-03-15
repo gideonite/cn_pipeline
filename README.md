@@ -2,8 +2,11 @@ Copy Number Pipeline
 ====================
 
 This is a pipeline for making copy number calls on array data from platforms
-like Affymetrix SNP6.0.  Currently, it supports analysis from normalized probe
-signals through identification of significantly altered segments.
+like Affymetrix SNP6.0.  Currently, it supports normalization of raw agilent
+data, and copy number analysis from normalized probe signals through
+identification of significantly altered segments of Agilent and Affymetrix
+platforms (once the data is normalized, the details of platform ceases to as
+important).
 
 ## Overview of Implementation and Algorithms
 
@@ -41,6 +44,19 @@ on some systems the MCR might not be able to find the shared library
 per this `lib`, directory.  If while running GISTIC you get an error relating
 to this, you may have to deal with it yourself by modifying the env
 initialization in `run_gistic.sh`.
+
+### Normalization
+
+This is the work of others at the BIC -- Bioinformatics Core at MSKCC.  Many
+thanks to them for their hard work!
+
+A few notes on how it's done on an SGE grid:
+
+* generate a file that contains paths to your raw files -- "file of files" -- `$FOF$`
+* how many files have you listed, `NUMBER_OF_FILES=wc -l $FOF`
+* submit to the cluster:
+    qsub -t 1-$NUMBER_OF_FILES jobPipe $FOF
+* use `qstat` to get the status of the job you just submitted
 
 ### CBS
 
